@@ -1,0 +1,401 @@
+---
+title: "Reproducibility README for 'A general M-estimation theory in semi-supervised framework'"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+This README is for the purpose of running the codes accompanying the JASA paper submission 'A general M-estimation theory in semi-supervised framework' (Manucript ID JASA-T&M-2021-0859.R1) for reproducibility. This README is designed to help anyone evaluating the reproducibility aspects of the manuscript to more easily follow the logic and functions submitted with the paper. 
+
+
+## Usage
+
+It has been noted by the authors that all the functions that are being used are intended solely for reproducibility purposes rather than distribution to a wider audience. 
+
+The codes contained in the project are designed to be used for problems in which users wish to conduct M-estimation in a semi-supervised framework. The functions here focus on three very common working models (including linear regression working model, logistic regression working model and quantile regression working model) of such problems, and can be extended to other situations. In addition, the functions include those functions used in analyzing the real-world data set in Section 4.2 of the paper, i.e., the homeless data set in Los Angeles. 
+
+
+## Project Directory
+
+Below is a list of all files contained in the *Codes_Reproducibility.rar* file:
+
+1. **semi_supervised_methods.R**: This file includes all implementation functions of our proposed method and some existing semi-supervised methods under different data settings for reproducibility purposes. See the README section 'Functions contained in semi_supervised_methods.R' below for full details of the functions contained in this file. It is sourced by *Main_Simple_Figure1.R*, *Main_Simple_Figure3.R*, *Main_Simple_Figure4.R*, *Main_Simple_Table6.R* and *Working_Example_Analysis.R*.  
+
+2. **SupervisedEstimation.R**: This file contains the implementation functions of the supervised method under different data settings. See the README section 'Functions contained in SupervisedEstimation.R' below for full details of the functions contained in this file. It is sourced by *Main_Simple_Figure1.R*, *Main_Simple_Figure3.R*, *Main_Simple_Figure4.R* and *Main_Simple_Table6.R*.
+
+3. **dataGeneration.R**: This file contains the functions of data generation for simulation studies under different settings. See the README section 'Functions contained in dataGeneration.R' below for full details of the functions contained in this file. It is sourced by *Main_Simple_Figure1.R*, *Main_Simple_Figure3.R*, *Main_Simple_Figure4.R* and *Main_Simple_Table6.R*.
+
+4. **Main_Simple_Figure1.R**: This file provides a simplistic, commented version of the code necessary to recreate only the subfigure (a) of Figure 1 in Section 4.1 of the paper. Because the full reproducibility code is difficult to parse, this code file is intended to give users a simple, clear walkthrough of how authors have created the results shown in Figure 1. It sources the *semi_supervised_methods.R*, *SupervisedEstimation.R* and *dataGeneration.R* code files. 
+
+5. **Main_Simple_Figure3.R**: This file contains the codes necessary to recreate only the subfigure (a) of Figure 3 in Section 4.1 of the paper. It sources the *semi_supervised_methods.R*, *SupervisedEstimation.R* and *dataGeneration.R* function files. 
+
+6. **Main_Simple_Figure4.R**: This file contains the codes necessary to recreate only the subfigure (a) of Figure 4 in Section 4.1 of the paper. It sources the *semi_supervised_methods.R*, *SupervisedEstimation.R* and *dataGeneration.R* function files. 
+
+7. **Main_Simple_Table6.R**: This file contains the codes necessary to recreate only the first 8 lines of Table 6 in Section 4.1 of the paper. It sources the *semi_supervised_methods.R*, *SupervisedEstimation.R* and *dataGeneration.R* function files. 
+  
+8. **Working_Example_Analysis.R**: This file contains the codes necessary to recreate the results in Section 4.2 of the paper. Due to the proprietary nature of the data presented in the real data applications, the authors cannot provide the real data. it also sources the *semi_supervised_methods.R* function file and the simulated data set **WorkingExampleMatrix.csv**. 
+
+9. **WorkingExampleMatrix.csv**: This file contains a simulated data version of the real data that could be used in conjunction with the codes in **Working_Example_Analysis.R**.
+
+## Necessary Libraries 
+
+In order to run the reproducible codes, users should first install and load the MASS, caret and quantreg libraries into R. The codes should be compatile with R version 4.0, provided the versions of the packages used are also compatible with the installed version of R. 
+
+
+The MASS, caret and quantreg libraries are used in the actual running of *semi_supervised_methods.R*, the quantreg library used in running of *SupervisedEstimation.R*, the MASS library used in running of *dataGeneration.R*; thus the MASS, caret and quantreg libraries are used in running all reproducible results.
+
+```r
+install.packages(c("MASS","caret","quantreg"))
+library(MASS)
+library(caret)
+library(quantreg)
+```
+
+The versions suggested are as follows:
+
+1. MASS, version 7.3-53 
+2. caret, version 6.0-86 
+3. quantreg, version 5.75
+
+
+
+## Functions contained in semi_supervised_methods.R
+
+Below is a list of the 12 functions provided in the **semi_supervised_methods.R** source file, including a short discription of their intended use. Further details on each function have been added at the beginning of each function in the **semi_supervised_methods.R** source file. In addition, the authors note **in bold** which functions are used in the reproducibility code files. 
+
+1. **PSSE**: This function is the main function to call in order to implement our proposed semi-supervised method. To do so, it calls the functions *polynomial*, **GBIC_ppo**, *supervised_one*, **L_first_derivative**, *newton_iteration* and *gradient_descent* to calculate the proposed estimator according to the available labelled data set (*labelled_data*) and unlabelled data set (*unlabelled_data*). 
+
+2. *polynomial*: This function is used to produce the polynomial basis of the predictor vector including the intercept. It is called by **PSSE** and **DRESS**. 
+
+3. **GBIC_ppo**: This function computes the GBIC_ppo criterion function under a given polynomial order. This function could be called directly as a standalone function. It is called by the function **PSSE**. 
+
+4. *supervised_one*: This function is to compute the supervised estimator only based on the available labelled data set. It is similar to the function  **SupervisedEst** from **SupervisedEstimation.R** code file, and we put this function here to ensure the implementation of our semi-supervised method work by only sourcing **semi_supervised_methods.R** file. 
+
+5. **L_first_derivative**: This function calculates the first-order derivatives based on the available data and the type of working model. It is called by the function **PSSE**. 
+
+6. *newton_iteration*: This function is used to implement the newton iteration method for logistic regression working model. It is called by the function **PSSE**. 
+
+7. *gradient_descent*: This function is to use the gradient descent method to fine-tune a given estimate of the target parameter for quantile regression working model. It is called by the function **PSSE**. 
+
+8. **PI**: This function is to implement the semi-supervised method proposed by Azriel et al. (2021) for linear working model according to the available labelled data set (*labelled_data*) and unlabelled data set (*unlabelled_data*).  
+
+9. **EASE**: This function is to implement the semi-supervised method proposed by Chakrabortty and Cai (2018) for linear working model.
+
+10. *kernel_guassian*: This function serves as the Gaussian kernel function. It is called by the function **EASE**. 
+
+11. *bandwidth.cv*: This function is used for the bandwidth selection in the function **EASE**.
+
+12. **DRESS**: This function is to implement the semi-supervised method proposed by Kawakita and Kanamori (2013) for M-estimation according to the available labelled data set (*labelled_data*) and unlabelled data set (*unlabelled_data*).
+
+
+
+## Functions contained in SupervisedEstimation.R
+
+1. **SupervisedEst**: This function is to calculate the supervised coefficients estimate based on the given labelled data (*labelled_data*) and the data setting (*option*).  
+
+
+
+## Functions contained in dataGeneration.R
+
+1. **GenerateData**: This function is to generate the simulated data under different settings both in Section 4.1 of the paper and Section 3.2 of the supplementary material according to the given values of the labelled data size (*n*), the unlabelled data size (*N*), the dimension of predictors (*p*) and the data setting (*option*).  
+
+2. *X_AR1_covmatrix*: This function is to produce the Toeplitz-type covariance matrix of the predictors according to the given values of the dimension of predictors (*p*) and a parameter (*rho*).
+
+3. *g_S1*: A function related to the data generation under setting (S1) in the supplementary material.
+
+4. *g_S2*: A function related to the data generation under setting (S2) in the supplementary material.
+
+5. *g_S3*: A function related to the data generation under setting (S3) in the supplementary material.
+
+
+
+## Simulation Reproducibility 
+
+The files provided for reproducibility are intended to reproduce the results of Section 4.1 in the paper and Section 3.2 in the supplementary material. We provide some details here to indicate what codes are doing as they run to explain the general process. 
+
+
+In order to reproduce the simulation results of the paper, you should first source **semi_supervised_methods.R**, **SupervisedEstimation.R** and **dataGeneration.R** function files, and set the number of replications (*rep*) you would like to run. Each replication is a separately-generated simulated data set for which the supervised estimator, our proposed estimator and other semi-supervised estimators (if applicable) are calculated. To reproduce the results in Figures 1, 3 - 4 and Table 6, you should set *rep=1000*, as is the default value provided in the code files *Main_Simple_Figure1.R*, *Main_Simple_Figure3.R*, *Main_Simple_Figure4.R* and *Main_Simple_Table6.R*. 
+
+```r
+source("semi_supervised_methods.R")
+source("SupervisedEstimation.R")
+source("dataGeneration.R")
+rep=1000
+```
+
+For reproducibility, you should also set a initial seed value and then increasing it as the the number of the replications increases. Again, to reproduce the results in Figure 1, 3 - 4 and Table 6, you should set the initial seed value to 20220122, as is the default provided in the code files *Main_Simple_Figure1.R*, *Main_Simple_Figure3.R*, *Main_Simple_Figure4.R* and *Main_Simple_Table6.R*. 
+
+```r
+set.seed(k+20220122) # k in 1:rep
+```
+
+In addition, as we said in the paper, the true value of the target parameter is computed by generating labelled data of size $10^5$. To reproduce the results in Figures 3 - 4 and Table 6, you should also set a new seed value to ensure the calculated value of the target parameter is unique among 1000 replications. 
+
+```r
+set.seed(1230988)
+```
+Because the codes called for Figures 1 and 10 are so similar and the codes called for Figures 2, 4 - 5, 6 - 9, 11 - 14 are so similar, for convenience and an easier walkthrough of the codes,
+we have included the *Main_Simple_Figure1.R* file to run the subfigure (a) of Figure 1, *Main_Simple_Figure3.R* file to run the subfigure (a) of Figure 3, *Main_Simple_Figure4.R* file to run the subfigure (a) of Figure 4 and the *Main_Simple_Table6.R* file to run for only the first 8 rows of Table 6. Basically, we have commented each line of 
+*Main_Simple_Figure1.R*, *Main_Simple_Figure3.R*, *Main_Simple_Figure4.R* and *Main_Simple_Table6.R* to indicate what is calling at each step. 
+
+Take running the *Main_Simple_Figure1.R* and *Main_Simple_Table6.R* code files as examples below. Similar steps can be followed for running the *Main_Simple_Figure3.R* and *Main_Simple_Figure4.R* code files. 
+
+### Workflow of Running *Main_Simple_Figure1.R*
+
+Here, we present the workflow which clearly shows the results of running pieces of the codes in  *Main_Simple_Figure1.R* and the final output is the subfigure (a) of Figure 1.
+
+#### (1) Required Packages
+First, install and load necessary packages. At the same time, source the necessary **semi_supervised_methods.R**, **SupervisedEstimation.R** and **dataGeneration.R** function files.  
+
+
+```{r}
+library(MASS)
+library(caret)
+library(quantreg)
+source("semi_supervised_methods.R") 
+source("dataGeneration.R")  
+source("SupervisedEstimation.R")
+```
+
+#### (2) Global Parameters
+Then, we shall define some global parameters:
+
+* n: the labelled data size and default is 250.  
+
+* p: the dimension of predictor vector and default is 4. 
+
+* option: the data setting and default is “i”. Here, "i" corresponds to setting (i) in Section 4.1 in our paper. We offer nine choices of "option": "i","ii","iii","W1","W2","W3",S1","S2","S3". These reminding choices correspond to settings (ii) - (iii) in Section 4.1 of the paper, 
+ settings (W1) - (W2), settings (S1) - (S3) in Section 3.2 of the supplementary material 
+in sequence. The parameter "option" is also used in the definition of the function *GenerateData* from the file **dataGeneration.R**. 
+
+* tau_0: the quantile level, which is only useful for quantile regression working model, and  default is 0.5. 
+
+* rep: the number of replications and default is 1000. 
+
+
+
+```{r}
+n=250  
+p=4  
+option="i"  
+tau_0=0.5                        
+rep=1000       
+```
+Notably, the complete Figure 1 could be reproduced by changing option from “i” to “ii” and “iii”.
+
+#### (3) Replications
+Next, we are going to (3.1) conduct the data generation, (3.2) use the selector GBIC_ppo to determine the polynomial order and (3.3) save the selected polynomial order in each replication. This procedure will be repeated "rep" times. 
+
+
+```{r}
+alpha_replications <- vector()
+for (k in 1:rep)
+{ 
+  set.seed(k+20220122)
+  #print(c("k",k))
+  #######################(3.1) Data generation ##############################
+  DesiredData<- GenerateData(n=n,p=p,option=option)
+  data_labelled = DesiredData$Data.labelled  # the labelled data 
+  #########################(3.2) GBIC_ppo ###################################
+  # determine the type of working model by the quantity "option"
+  if (option%in%c("i","W1","S1")){
+    type= "linear" 
+  } else if (option%in%c("ii","W2","S2")){
+    type="logistic"
+  } else if(option%in%c("iii","W3","S3")){
+    type="quantile"
+  }
+  # data splitting 
+  labelled_data_part1<- data_labelled[1:round(n/2),]
+  labelled_data_part2<- data_labelled[(round(n/2)+1):n,]
+  # the supervised estimate
+  hattheta_supervised_part1<- SupervisedEst(labelled_data_part1,tau=tau_0,option=option)$Est.coef
+  hattheta_supervised_part2<- SupervisedEst(labelled_data_part2,tau=tau_0,option=option)$Est.coef
+  # the first derivative of the loss function L using the supervised estimate 
+  L_first_derivative_part1<- L_first_derivative(labelled_data_part1,hattheta_supervised_part2,type=type,tau_level=tau_0)
+  L_first_derivative_part2<- L_first_derivative(labelled_data_part2,hattheta_supervised_part1,type=type,tau_level=tau_0)
+  # new data integrating the first derivatives of loss function
+  Ynew<- rbind(L_first_derivative_part1,L_first_derivative_part2)
+  covariates_labelled<- data_labelled[,-1]
+  # GBIC_ppo to select the polynomial order 
+  gamma=10
+  GBICscrores<-apply(as.matrix(1:gamma,1,gamma), 1, function(t) GBIC_ppo(Ynew,covariates_labelled,t))
+  alpha<- which.min(GBICscrores)
+  ###################(3.3) save results ####################################
+  alpha_replications <- c(alpha_replications,alpha)
+}
+```
+
+#### (4) Figures 
+Last, plot the subfigure (a) in Figure 1. 
+
+```{r}
+#pdf("subfigure_GBIC_ppo.pdf")
+df1<- data.frame(alpha_replications)
+colnames(df1) <-"poly_order"
+alpha1_plot<-ggplot(data = df1, mapping = aes(x =poly_order)) +
+  geom_histogram( mapping = aes(x =poly_order),color="black", fill="white",bins=30)+
+  labs(title=paste("Setting (",option,")",sep=""),x="Polynomial Order", y = "Frequency")
+p1=alpha1_plot+ theme_bw() +theme(plot.title = element_text(hjust = 0)) +theme(aspect.ratio = 1)+
+  theme(plot.title = element_text(size=10))+
+  theme(panel.border = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))+scale_y_continuous(expand = c(0,0))
+p1
+```
+
+
+
+### Workflow of Running *Main_Simple_Table6.R*
+
+#### (1) Required Packages
+First, install and load necessary packages. At the same time, source the necessary **semi_supervised_methods.R**, **SupervisedEstimation.R** and **dataGeneration.R** function files.  
+
+```{r}
+library(MASS)
+library(caret)
+library(quantreg)
+source("semi_supervised_methods.R") 
+source("dataGeneration.R")  
+source("SupervisedEstimation.R")
+```
+
+#### (2) Global Parameters
+Then, we shall define some global parameters:
+
+* n: the labelled data size and default is 250.  
+
+* N: the unlabelled data size and default is 500. 
+
+* p: the dimension of predictor vector and default is 4. 
+
+* option: the data setting and default is “ii”. Here, "ii" corresponds to setting (ii) in Section 4.1 in our paper.
+
+* polyOrder: the polynomial order and default is 4. It is useful when we construct the polynomial functions of X as Z. Generally, we select the polynomial order by our proposed selector $\text{GBIC}_{ppo}$. Since this file is to run the subfigures, we use the same selected polynomial order for all replications under a specific polyorder. If the polynomial order isn't given, the main function of our method "PSSE" defined in the file **semi_supervised_methods.R** would select the polynomial order by the selector $\text{GBIC}_{ppo}$.
+
+* tau_0: the quantile level, which is only useful for quantile regression working model, and  default is 0.5. 
+
+* rep: the number of replications and default is 1000. 
+
+```{r}
+n=300
+N=500 
+p=7 
+rep=1000 
+option="ii"
+polyOrder<- 4
+tau_0=0.5
+```
+
+#### (3) Target Parameter
+We shall compute the true value of the target parameter by generating data of size $10^5$.
+
+```{r}
+set.seed(1230988)
+LargeLabelledData<-GenerateData(n=10^5,p=p,option=option)$Data.labelled
+target_parameter=SupervisedEst(LargeLabelledData,tau=tau_0,option=option)$Est.coef
+```
+
+#### (4) Replications
+Next, we are going to (4.1) conduct the data generation, (4.2) calculate the supervised estimate, (4.3) calculate all applicable semi-supervised estimates including ours, and (4.4) save results.
+```{r}
+results_supervised <- vector()
+results_proposed <- vector()
+results_PI<- vector()
+results_EASE <- vector()
+results_DRESS <- vector()
+sd_proposed_matrix <- vector()
+cp_proposed_matrix <- vector()
+for (k in 1:rep)
+{ 
+  set.seed(k+20220122)
+  #######################(4.1) Data generation ##############################
+  DesiredData<- GenerateData(n=n,N=N,p=p,option=option)
+  data_labelled = DesiredData$Data.labelled  # the labelled data 
+  data_unlabelled = DesiredData$Data.unlabelled # the unlabelled data 
+  #######################(4.2) supervised estimator #########################
+  hattheta_supervised=SupervisedEst(data_labelled,tau=tau_0,option=option)$Est.coef
+  ####################(4.3) semi-supervised estimators ######################
+  ### determine the type of working model by the quantity "option"
+  if (option%in%c("i","W1","S1")){
+    type= "linear" 
+  } else if (option%in%c("ii","W2","S2")){
+    type="logistic"
+  } else if(option%in%c("iii","W3","S3")){
+    type="quantile"
+  }
+  ### our proposed one
+  estimation_proposed <- PSSE(data_labelled,data_unlabelled,type=type,sd=TRUE,tau=tau_0,alpha=polyOrder)
+  hattheta_proposed <- estimation_proposed$Hattheta  # coefficient estimate 
+  sd_hattheta_proposed<- estimation_proposed$sd.of.hattheta # sd estimate 
+  cp_hattheta_proposed<- (abs(hattheta_proposed-target_parameter)<=1.96*sd_hattheta_proposed) # coverage rate
+  if (type=="linear"){
+    ### PI proposed by Azriel et al. (2021)
+    estimation_PI <- PI(data_labelled,data_unlabelled)
+    hattheta_PI <- estimation_PI$Hattheta
+    ### EASE proposed by Chakrabortty and Cai (2018)
+    estimation_EASE <- EASE(data_labelled,data_unlabelled,K=5,H=40,r=2)
+    hattheta_EASE <- estimation_EASE$Hattheta
+  }else{
+    hattheta_PI=NaN
+    hattheta_EASE=NaN
+  }
+  ## DRESS proposed by Kawakita and Kanamori (2013) 
+  estimation_DRESS<- DRESS(data_labelled,data_unlabelled,type=type,tau=tau_0,L=polyOrder)
+  hattheta_DRESS <- estimation_DRESS$Hattheta
+  ###################(4.4) save results ##########################
+  results_supervised<-rbind(results_supervised,hattheta_supervised) 
+  results_proposed <- rbind(results_proposed,hattheta_proposed)
+  results_PI <- rbind(results_PI,hattheta_PI)
+  results_EASE <- rbind(results_EASE,hattheta_EASE)
+  results_DRESS <- rbind(results_DRESS,hattheta_DRESS)
+  sd_proposed_matrix<- rbind(sd_proposed_matrix,sd_hattheta_proposed)
+  cp_proposed_matrix<- rbind(cp_proposed_matrix,cp_hattheta_proposed)
+}
+```
+
+#### Tables
+Last, obtain the subtable (the first eight rows) in Table 6. 
+```{r}
+results_total <- round(cbind(target_parameter,
+                       colMeans(results_supervised)-target_parameter,apply(results_supervised,2,sd),
+                       colMeans(results_PI)-target_parameter,apply(results_PI,2,sd), apply(results_supervised,2,var)/apply(results_PI,2,var),
+                       colMeans(results_EASE)-target_parameter,apply(results_EASE,2,sd),apply(results_supervised,2,var)/apply(results_EASE,2,var),
+                       colMeans(results_DRESS)-target_parameter,apply(results_DRESS,2,sd),apply(results_supervised,2,var)/apply(results_DRESS,2,var),
+                       colMeans(results_proposed)-target_parameter,apply(results_proposed,2,sd),apply(results_supervised,2,var)/apply(results_proposed,2,var),
+                       colMeans(sd_proposed_matrix),colMeans(cp_proposed_matrix)
+),3)
+colnames(results_total) <- c("real_value","bias","SE","bias","SE","ARE","bias","SE","ARE","bias","SE","ARE","bias","SE","ARE","SEE","CP")
+rownames(results_total) <-NULL
+cat("Methods: supervised, PI, EASE, DRESS, proposed\n")
+cat(paste("The setting of (p,n,N):",p,n,N,sep=" "))
+cat("\n")
+print(results_total)
+```
+
+
+
+
+
+
+
+
+
+
+## Real Data Analysis  
+
+In order to demonstrate how the case study results were created in Section 4.2 of the paper, we have provided the code file **Working_Example_Analysis.R**. 
+
+We discuss some details of the code implementation here. 
+First, we need to conduct data preprocessing. It includes: 1) Read the simulated data from **WorkingExampleMatrix.csv**; 2) Select the observations of 7 important predictors, the response and the variable "selection". 3) According to the variable "selection", we identify the labelled samples and the unlabelled samples. Second, we calculate all applicable estimators by calling the proper main functions, such as **PSSE** and **DRESS**. Then, we save the results in a matrix named *results_total* and it will finally be saved in a txt file *WorkingEXampleResults.txt*. 
+
+
+
+
+
+
+
+

@@ -1,0 +1,242 @@
+---
+title: "Workflow of Running *Main_Simple_Figure1.R* and *Main_Simple_Table6.R*"
+output:
+  word_document: default
+  pdf_document: default
+---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+## Workflow of Running *Main_Simple_Figure1.R*
+
+### (1) Required Packages
+First, install and load necessary packages. At the same time, source the necessary **semi_supervised_methods.R**, **SupervisedEstimation.R** and **dataGeneration.R** function files.  
+
+
+```{r}
+library(MASS)
+library(caret)
+library(quantreg)
+source("semi_supervised_methods.R") 
+source("dataGeneration.R")  
+source("SupervisedEstimation.R")
+```
+
+### (2) Global Parameters
+Then, we shall define some global parameters:
+
+* n: the labelled data size and default is 250.  
+
+* p: the dimension of predictor vector and default is 4. 
+
+* option: the data setting and default is “i”. Here, "i" corresponds to setting (i) in Section 4.1 in our paper. We offer nine choices of "option": "i","ii","iii","W1","W2","W3",S1","S2","S3". These reminding choices correspond to settings (ii) - (iii) in Section 4.1 of the paper, 
+ settings (W1) - (W2), settings (S1) - (S3) in Section 3.2 of the supplementary material 
+in sequence. The parameter "option" is also used in the definition of the function *GenerateData* from the file **dataGeneration.R**. 
+
+* tau_0: the quantile level, which is only useful for quantile regression working model, and  default is 0.5. 
+
+* rep: the number of replications and default is 1000. 
+
+
+
+```{r}
+n=250  
+p=4  
+option="i"  
+tau_0=0.5                        
+rep=1000       
+```
+
+### (3) Replications
+Next, we are going to (3.1) conduct the data generation, (3.2) use the selector GBIC_ppo to determine the polynomial order and (3.3) save the selected polynomial order in each replication. This procedure will be repeated "rep" times. 
+
+
+```{r}
+alpha_replications <- vector()
+for (k in 1:rep)
+{ 
+  set.seed(k+20220122)
+  #print(c("k",k))
+  #######################(3.1) Data generation ##############################
+  DesiredData<- GenerateData(n=n,p=p,option=option)
+  data_labelled = DesiredData$Data.labelled  # the labelled data 
+  #########################(3.2) GBIC_ppo ###################################
+  # determine the type of working model by the quantity "option"
+  if (option%in%c("i","W1","S1")){
+    type= "linear" 
+  } else if (option%in%c("ii","W2","S2")){
+    type="logistic"
+  } else if(option%in%c("iii","W3","S3")){
+    type="quantile"
+  }
+  # data splitting 
+  labelled_data_part1<- data_labelled[1:round(n/2),]
+  labelled_data_part2<- data_labelled[(round(n/2)+1):n,]
+  # the supervised estimate
+  hattheta_supervised_part1<- SupervisedEst(labelled_data_part1,tau=tau_0,option=option)$Est.coef
+  hattheta_supervised_part2<- SupervisedEst(labelled_data_part2,tau=tau_0,option=option)$Est.coef
+  # the first derivative of the loss function L using the supervised estimate 
+  L_first_derivative_part1<- L_first_derivative(labelled_data_part1,hattheta_supervised_part2,type=type,tau_level=tau_0)
+  L_first_derivative_part2<- L_first_derivative(labelled_data_part2,hattheta_supervised_part1,type=type,tau_level=tau_0)
+  # new data integrating the first derivatives of loss function
+  Ynew<- rbind(L_first_derivative_part1,L_first_derivative_part2)
+  covariates_labelled<- data_labelled[,-1]
+  # GBIC_ppo to select the polynomial order 
+  gamma=10
+  GBICscrores<-apply(as.matrix(1:gamma,1,gamma), 1, function(t) GBIC_ppo(Ynew,covariates_labelled,t))
+  alpha<- which.min(GBICscrores)
+  ###################(3.3) save results ####################################
+  alpha_replications <- c(alpha_replications,alpha)
+}
+```
+
+### (4) Figures 
+Last, plot the subfigure (a) in Figure 1. 
+
+```{r}
+#pdf("subfigure_GBIC_ppo.pdf")
+df1<- data.frame(alpha_replications)
+colnames(df1) <-"poly_order"
+alpha1_plot<-ggplot(data = df1, mapping = aes(x =poly_order)) +
+  geom_histogram( mapping = aes(x =poly_order),color="black", fill="white",bins=30)+
+  labs(title=paste("Setting (",option,")",sep=""),x="Polynomial Order", y = "Frequency")
+p1=alpha1_plot+ theme_bw() +theme(plot.title = element_text(hjust = 0)) +theme(aspect.ratio = 1)+
+  theme(plot.title = element_text(size=10))+
+  theme(panel.border = element_blank(),panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),axis.line = element_line(colour = "black"))+scale_y_continuous(expand = c(0,0))
+p1
+```
+
+
+## Workflow of Running *Main_Simple_Table6.R*
+
+### (1) Required Packages
+First, install and load necessary packages. At the same time, source the necessary **semi_supervised_methods.R**, **SupervisedEstimation.R** and **dataGeneration.R** function files.  
+
+```{r}
+library(MASS)
+library(caret)
+library(quantreg)
+source("semi_supervised_methods.R") 
+source("dataGeneration.R")  
+source("SupervisedEstimation.R")
+```
+
+### (2) Global Parameters
+Then, we shall define some global parameters:
+
+* n: the labelled data size and default is 250.  
+
+* N: the unlabelled data size and default is 500. 
+
+* p: the dimension of predictor vector and default is 4. 
+
+* option: the data setting and default is “ii”. Here, "ii" corresponds to setting (ii) in Section 4.1 in our paper.
+
+* polyOrder: the polynomial order and default is 4. It is useful when we construct the polynomial functions of X as Z. Generally, we select the polynomial order by our proposed selector $\text{GBIC}_{ppo}$. Since this file is to run the subfigures, we use the same selected polynomial order for all replications under a specific polyorder. If the polynomial order isn't given, the main function of our method "PSSE" defined in the file **semi_supervised_methods.R** would select the polynomial order by the selector $\text{GBIC}_{ppo}$.
+
+* tau_0: the quantile level, which is only useful for quantile regression working model, and  default is 0.5. 
+
+* rep: the number of replications and default is 1000. 
+
+```{r}
+n=300
+N=500 
+p=7 
+rep=1000 
+option="ii"
+polyOrder<- 4
+tau_0=0.5
+```
+
+### (3) Target Parameter
+We shall compute the true value of the target parameter by generating data of size $10^5$.
+
+```{r}
+set.seed(1230988)
+LargeLabelledData<-GenerateData(n=10^5,p=p,option=option)$Data.labelled
+target_parameter=SupervisedEst(LargeLabelledData,tau=tau_0,option=option)$Est.coef
+```
+
+### (4) Replications
+Next, we are going to (4.1) conduct the data generation, (4.2) calculate the supervised estimate, (4.3) calculate all applicable semi-supervised estimates including ours, and (4.4) save results.
+```{r}
+results_supervised <- vector()
+results_proposed <- vector()
+results_PI<- vector()
+results_EASE <- vector()
+results_DRESS <- vector()
+sd_proposed_matrix <- vector()
+cp_proposed_matrix <- vector()
+for (k in 1:rep)
+{ 
+  set.seed(k+20220122)
+  #######################(4.1) Data generation ##############################
+  DesiredData<- GenerateData(n=n,N=N,p=p,option=option)
+  data_labelled = DesiredData$Data.labelled  # the labelled data 
+  data_unlabelled = DesiredData$Data.unlabelled # the unlabelled data 
+  #######################(4.2) supervised estimator #########################
+  hattheta_supervised=SupervisedEst(data_labelled,tau=tau_0,option=option)$Est.coef
+  ####################(4.3) semi-supervised estimators ######################
+  ### determine the type of working model by the quantity "option"
+  if (option%in%c("i","W1","S1")){
+    type= "linear" 
+  } else if (option%in%c("ii","W2","S2")){
+    type="logistic"
+  } else if(option%in%c("iii","W3","S3")){
+    type="quantile"
+  }
+  ### our proposed one
+  estimation_proposed <- PSSE(data_labelled,data_unlabelled,type=type,sd=TRUE,tau=tau_0,alpha=polyOrder)
+  hattheta_proposed <- estimation_proposed$Hattheta  # coefficient estimate 
+  sd_hattheta_proposed<- estimation_proposed$sd.of.hattheta # sd estimate 
+  cp_hattheta_proposed<- (abs(hattheta_proposed-target_parameter)<=1.96*sd_hattheta_proposed) # coverage rate
+  if (type=="linear"){
+    ### PI proposed by Azriel et al. (2021)
+    estimation_PI <- PI(data_labelled,data_unlabelled)
+    hattheta_PI <- estimation_PI$Hattheta
+    ### EASE proposed by Chakrabortty and Cai (2018)
+    estimation_EASE <- EASE(data_labelled,data_unlabelled,K=5,H=40,r=2)
+    hattheta_EASE <- estimation_EASE$Hattheta
+  }else{
+    hattheta_PI=NaN
+    hattheta_EASE=NaN
+  }
+  ## DRESS proposed by Kawakita and Kanamori (2013) 
+  estimation_DRESS<- DRESS(data_labelled,data_unlabelled,type=type,tau=tau_0,L=polyOrder)
+  hattheta_DRESS <- estimation_DRESS$Hattheta
+  ###################(4.4) save results ##########################
+  results_supervised<-rbind(results_supervised,hattheta_supervised) 
+  results_proposed <- rbind(results_proposed,hattheta_proposed)
+  results_PI <- rbind(results_PI,hattheta_PI)
+  results_EASE <- rbind(results_EASE,hattheta_EASE)
+  results_DRESS <- rbind(results_DRESS,hattheta_DRESS)
+  sd_proposed_matrix<- rbind(sd_proposed_matrix,sd_hattheta_proposed)
+  cp_proposed_matrix<- rbind(cp_proposed_matrix,cp_hattheta_proposed)
+}
+```
+
+### Tables
+Last, obtain the subtable (the first eight rows) in Table 6. 
+```{r}
+results_total <- round(cbind(target_parameter,
+                       colMeans(results_supervised)-target_parameter,apply(results_supervised,2,sd),
+                       colMeans(results_PI)-target_parameter,apply(results_PI,2,sd), apply(results_supervised,2,var)/apply(results_PI,2,var),
+                       colMeans(results_EASE)-target_parameter,apply(results_EASE,2,sd),apply(results_supervised,2,var)/apply(results_EASE,2,var),
+                       colMeans(results_DRESS)-target_parameter,apply(results_DRESS,2,sd),apply(results_supervised,2,var)/apply(results_DRESS,2,var),
+                       colMeans(results_proposed)-target_parameter,apply(results_proposed,2,sd),apply(results_supervised,2,var)/apply(results_proposed,2,var),
+                       colMeans(sd_proposed_matrix),colMeans(cp_proposed_matrix)
+),3)
+colnames(results_total) <- c("real_value","bias","SE","bias","SE","ARE","bias","SE","ARE","bias","SE","ARE","bias","SE","ARE","SEE","CP")
+rownames(results_total) <-NULL
+cat("Methods: supervised, PI, EASE, DRESS, proposed\n")
+cat(paste("The setting of (p,n,N):",p,n,N,sep=" "))
+cat("\n")
+print(results_total)
+```
+
+
+
+
