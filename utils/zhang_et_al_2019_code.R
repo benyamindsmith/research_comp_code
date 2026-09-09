@@ -3,7 +3,7 @@
 # By Zhang et al. (2019) is not available publicly. 
 # The code here is an implementation of the method. 
 
-zhang_ss_mean <- function(X_lab, Y_lab, X_unlab, mu_hat=NULL, alpha = 0.05) {
+zhang_ss_mean <- function(X_lab, Y_lab, X_unlab, alpha = 0.05) {
   X_lab <- as.matrix(X_lab)
   X_unlab <- as.matrix(X_unlab)
   Y_lab <- as.numeric(Y_lab)
@@ -14,11 +14,8 @@ zhang_ss_mean <- function(X_lab, Y_lab, X_unlab, mu_hat=NULL, alpha = 0.05) {
   # Compute local and global means
   Y_bar <- mean(Y_lab)
   X_bar <- colMeans(X_lab)
-  if(is.null(mu_hat)){
-    mu_hat <- colMeans(X_unlab)
-  }else{
-    mu_hat <- mu_hat
-  }
+  mu_hat <- colMeans(X_unlab)
+ 
   
   # Estimate beta via OLS on the labeled data
   design_matrix <- cbind(1, X_lab)
