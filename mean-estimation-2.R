@@ -3,7 +3,7 @@ library(doParallel)
 library(dplyr)
 
 n_cores <- parallel::detectCores() - 1
-cl <- makeCluster(n_cores,outfile="")
+cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, {
@@ -26,13 +26,19 @@ true_theta <- 1
 
 grid <- expand.grid(n = ns, sim = 1:n_sims)
 
+log_file <- "logs/progress_mean2.log"
+if (file.exists(log_file)) file.remove(log_file)
+
 results <- foreach(row = 1:nrow(grid), .combine = rbind,
                    .packages = c("ipd")) %dopar% {
                      
                      n <- grid$n[row]
                      i <- grid$sim[row]
                      set.seed(i)
-                     cat(sprintf("\n--- Starting Config n=%d (i=%d/1000) ---\n", n, i))
+                     if (row %% 50 == 0) {
+                       cat(sprintf("[%d/%d] n=%d sim=%d\n", row, nrow(grid), n, i),
+                           file = log_file, append = TRUE)
+                     }
                      
                      zeta <- rnorm(n, mean = 0, sd = 1)
                      X <- mvnfast::rmvn(n, mu = rep(0, p), sigma = diag(p))
@@ -41,10 +47,10 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      x <- mvnfast::rmvn(N, mu = rep(0, p), sigma = diag(p))
                      
                      zeta_prime_lab <- rnorm(n, mean = 0, sd = 1)
-                     mu_lab <- (1 + zeta_prime_lab) * (X^2 %*% beta_vec)
+                     mu_lab <- (1 + 0.5*zeta_prime_lab) * (X^2 %*% beta_vec)
                      
                      zeta_prime_unlab <- rnorm(N, mean = 0, sd = 1)
-                     mu_unlab <- (1 + zeta_prime_unlab) * (x^2 %*% beta_vec)
+                     mu_unlab <- (1 + 0.5*zeta_prime_unlab) * (x^2 %*% beta_vec)
                      
                      zhang_est <- zhang_ss_mean(X_lab = X, Y_lab = Y, X_unlab = x, alpha = alpha)
                      pdc_est   <- pdc_mean(Y_lab = Y, mu_lab = mu_lab, mu_unlab = mu_unlab, alpha = alpha)

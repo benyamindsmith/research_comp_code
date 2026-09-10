@@ -22,7 +22,7 @@ n <- 1000; N <- 5000; p <- 4
 beta_1s <- 0:10
 
 grid <- expand.grid(beta_1 = beta_1s, sim = 1:n_sims)
-log_file <- "progress_beta3.log"
+log_file <- "logs/progress_beta3.log"
 if (file.exists(log_file)) file.remove(log_file)
 
 results <- foreach(row = 1:nrow(grid), .combine = rbind,

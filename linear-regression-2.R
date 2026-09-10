@@ -1,7 +1,26 @@
-# ... same cluster setup, sourcing identical files as Script 1 ...
+library(foreach)
+library(doParallel)
+library(dplyr)
+
+n_cores <- parallel::detectCores() - 1
+cl <- makeCluster(n_cores)
+registerDoParallel(cl)
+
+clusterEvalQ(cl, {
+  library(ipd); library(MASS); library(caret); library(quantreg); library(mvnfast)
+  source("utils/azriel_et_al_2022_code.R")
+  source("utils/song_et_al_2024_code/semi_supervised_methods.R")
+  source("utils/song_et_al_2024_code/SupervisedEstimation.R")
+})
+
+n_sims <- 1000
+alpha  <- 0.1
+z_crit <- qnorm(1 - alpha / 2)
+n <- 1000; N <- 5000; p <- 4
+beta_1s <- 0:10
 
 grid <- expand.grid(beta_1 = beta_1s, sim = 1:n_sims)
-log_file <- "progress_beta2.log"
+log_file <- "logs/progress_beta2.log"
 if (file.exists(log_file)) file.remove(log_file)
 
 results <- foreach(row = 1:nrow(grid), .combine = rbind,

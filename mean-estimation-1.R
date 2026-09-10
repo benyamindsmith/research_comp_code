@@ -3,7 +3,7 @@ library(doParallel)
 library(dplyr)
 
 n_cores <- parallel::detectCores() - 1
-cl <- makeCluster(n_cores,outfile="")
+cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, {
@@ -25,13 +25,18 @@ epsilon <- seq(0, 2, by = 0.2)
 true_theta <- 1
 
 grid <- expand.grid(eps = epsilon, sim = 1:n_sims)
+log_file <- "logs/progress_mean1.log"
+if (file.exists(log_file)) file.remove(log_file)
 
 results <- foreach(row = 1:nrow(grid), .combine = rbind,
                    .packages = c("ipd")) %dopar% {
                      
                      eps <- grid$eps[row]
                      i   <- grid$sim[row]
-                     cat(sprintf("\n--- Starting Config eps=%f (i=%d/1000) ---\n",eps, i))
+                     if (row %% 50 == 0) {
+                       cat(sprintf("[%d/%d] eps=%f sim=%d\n", row, nrow(grid), eps, i),
+                           file = log_file, append = TRUE)
+                     }
                      
                      set.seed(i)
                      

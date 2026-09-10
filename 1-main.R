@@ -11,7 +11,4 @@ source("linear-regression-1.R")
 source("linear-regression-2.R")
 source("linear-regression-3.R")
 
-# Extension - Logistic Regression (GLMs)
-
-
-# Extension - More realistic n/N ratio (n is smaller relative to N)
+# Extension - Logistic Regression

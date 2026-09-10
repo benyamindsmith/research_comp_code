@@ -50,23 +50,58 @@ theme_paper_p2 <- theme_bw(base_size = 14) +
 # As stated by the authors. 
 
 mean_estimation_1 <- mean_estimation_1|>
-  dplyr::filter(Estimator %in% c("Naive", "PPI", "PPI++", "Song","Zhang"))|>
+  dplyr::filter(Estimator %in% c("Naive", "PPI", "PPI++", "Song","Zhang","PSPA"))|>
   dplyr::mutate(Estimator = dplyr::case_match(Estimator,
                                                "PPI++" ~ "PDC", 
                                                "Naive" ~ "SUP", 
                                                "Zhang" ~ "SEMI",
                                                "Song" ~ "SONG", 
-                                              "PSPA" ~ "POP-Inf"
+                                              "PSPA" ~ "POP-Inf",
                                                .default = Estimator)|>
                   factor(x=_, levels = c("PDC", "SEMI", "PPI", "SUP", "SONG","POP-Inf")))
-# Figure 1
+
+mean_estimation_2 <- mean_estimation_2|>
+  dplyr::filter(Estimator %in% c("Naive", "PPI", "PPI++", "Song","Zhang","PSPA"))|>
+  dplyr::mutate(Estimator = dplyr::case_match(Estimator,
+                                              "PPI++" ~ "PDC", 
+                                              "Naive" ~ "SUP", 
+                                              "Zhang" ~ "SEMI",
+                                              "Song" ~ "SONG", 
+                                              "PSPA" ~ "POP-Inf",
+                                              .default = Estimator)|>
+                  factor(x=_, levels = c("PDC", "SEMI", "PPI", "SUP", "SONG","POP-Inf")))
+
+mean_estimation_3 <- mean_estimation_3|>
+  dplyr::filter(Estimator %in% c("Naive", "PPI", "PPI++", "Song","Zhang","PSPA"))|>
+  dplyr::mutate(Estimator = dplyr::case_match(Estimator,
+                                              "PPI++" ~ "PDC", 
+                                              "Naive" ~ "SUP", 
+                                              "Zhang" ~ "SEMI",
+                                              "Song" ~ "SONG", 
+                                              "PSPA" ~ "POP-Inf",
+                                              .default = Estimator)|>
+                  factor(x=_, levels = c("PDC", "SEMI", "PPI", "SUP", "SONG","POP-Inf")))
+
+
+linear_regression_1 <-linear_regression_1|>
+  dplyr::mutate(Estimator = dplyr::case_match(Estimator,
+                                              "Naive" ~ "SUP", 
+                                              "Azriel" ~ "SEMI",
+                                              "Song" ~ "SONG", 
+                                              "PSPA" ~ "POP-Inf",
+                                              .default = Estimator)|>
+                  factor(x=_, levels = c("PDC", "SEMI", "PPI", "SUP","PPI++", "SONG","POP-Inf")))
+  
+############ 
+# Figure 1 #
+############
 
 p1 <- ggplot(data = mean_estimation_1, mapping = aes(x = epsilon, y = Coverage, color = Estimator, shape = Estimator)) +
   geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
   geom_line(linewidth = 0.8) +
   geom_point(size = 3) + 
   scale_color_brewer(palette = "Set1") +
-  scale_shape_manual(values = c(15, 16, 17, 18, 4)) + 
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2)) + 
   labs(
     x = expression(epsilon),
     y = "Coverage",
@@ -80,7 +115,7 @@ p2 <- ggplot(data = mean_estimation_1, mapping = aes(x = epsilon, y = Width_Rati
   geom_line(linewidth = 0.8) +
   geom_point(size = 3) + 
   scale_color_brewer(palette = "Set1") +
-  scale_shape_manual(values = c(15, 16, 17, 18, 4)) + 
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2)) + 
   labs(
     x = expression(epsilon),
     y = "Width Ratio",
@@ -91,3 +126,114 @@ p2 <- ggplot(data = mean_estimation_1, mapping = aes(x = epsilon, y = Width_Rati
 
 # Figure 1
 p1+p2
+
+
+############ 
+# Figure 2 #
+############
+
+p3 <- ggplot(data = mean_estimation_2, mapping = aes(x = n, y = Coverage, color = Estimator, shape = Estimator)) +
+  geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) + 
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2,8)) + 
+  labs(
+    x = expression(n),
+    y = "Coverage",
+    color = "Method",
+    shape = "Method"
+  ) +
+  theme_paper_p1
+
+p4 <- ggplot(data = mean_estimation_2, mapping = aes(x = n, y = Width_Ratio, color = Estimator, shape = Estimator)) +
+  geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) + 
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2,8)) + 
+  labs(
+    x = expression(n),
+    y = "Width Ratio",
+    color = "Method",
+    shape = "Method"
+  ) +
+  theme_paper_p2
+
+# Figure 2
+p3+p4
+
+
+
+############ 
+# Figure 3 #
+############
+
+p5 <- ggplot(data = mean_estimation_3, mapping = aes(x = N, y = Coverage, color = Estimator, shape = Estimator)) +
+  geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) + 
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2,8)) + 
+  labs(
+    x = expression(N),
+    y = "Coverage",
+    color = "Method",
+    shape = "Method"
+  ) +
+  theme_paper_p1
+
+p6 <- ggplot(data = mean_estimation_3, mapping = aes(x = N, y = Width_Ratio, color = Estimator, shape = Estimator)) +
+  geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) + 
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2,8)) + 
+  labs(
+    x = expression(N),
+    y = "Width Ratio",
+    color = "Method",
+    shape = "Method"
+  ) +
+  theme_paper_p2
+
+# Figure 3
+p5+p6
+
+
+############ 
+# Figure 4 #
+############
+
+p7 <- ggplot(data = linear_regression_1, mapping = aes(x = beta_1, y = Coverage, color = Estimator, shape = Estimator)) +
+  geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) + 
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2,8)) + 
+  labs(
+    x = expression(beta[1]),
+    y = "Coverage",
+    color = "Method",
+    shape = "Method"
+  ) +
+  theme_paper_p1
+
+p8 <- ggplot(data = linear_regression_1, mapping = aes(x = beta_1, y = Width_Ratio, color = Estimator, shape = Estimator)) +
+  geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +  
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 3) + 
+  scale_color_brewer(palette = "Set1") +
+  scale_shape_manual(values = c(15, 16, 17, 18, 4,2,8)) + 
+  labs(
+    x = expression(beta[1]),
+    y = "Width Ratio",
+    color = "Method",
+    shape = "Method"
+  ) +
+  theme_paper_p2
+
+# Figure 4
+p7+p8
+
+
