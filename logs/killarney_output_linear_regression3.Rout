@@ -1,0 +1,2648 @@
+> library(foreach)
+> library(doParallel)
+Loading required package: iterators
+Loading required package: parallel
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> n_cores <- parallel::detectCores() - 1
+> cl <- makeCluster(n_cores)
+> registerDoParallel(cl)
+> 
+> clusterEvalQ(cl, {
++   library(ipd); library(MASS); library(caret); library(quantreg)
++   library(mvnfast); library(randomForest)
++   source("utils/azriel_et_al_2022_code.R")
++   source("utils/song_et_al_2024_code/semi_supervised_methods.R")
++   source("utils/song_et_al_2024_code/SupervisedEstimation.R")
++   source("utils/pdc_multi.R")
++ })
+[[1]]
+[[1]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[1]]$visible
+[1] FALSE
+
+
+[[2]]
+[[2]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[2]]$visible
+[1] FALSE
+
+
+[[3]]
+[[3]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[3]]$visible
+[1] FALSE
+
+
+[[4]]
+[[4]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[4]]$visible
+[1] FALSE
+
+
+[[5]]
+[[5]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[5]]$visible
+[1] FALSE
+
+
+[[6]]
+[[6]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[6]]$visible
+[1] FALSE
+
+
+[[7]]
+[[7]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[7]]$visible
+[1] FALSE
+
+
+[[8]]
+[[8]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[8]]$visible
+[1] FALSE
+
+
+[[9]]
+[[9]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[9]]$visible
+[1] FALSE
+
+
+[[10]]
+[[10]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[10]]$visible
+[1] FALSE
+
+
+[[11]]
+[[11]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[11]]$visible
+[1] FALSE
+
+
+[[12]]
+[[12]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[12]]$visible
+[1] FALSE
+
+
+[[13]]
+[[13]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[13]]$visible
+[1] FALSE
+
+
+[[14]]
+[[14]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[14]]$visible
+[1] FALSE
+
+
+[[15]]
+[[15]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[15]]$visible
+[1] FALSE
+
+
+[[16]]
+[[16]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[16]]$visible
+[1] FALSE
+
+
+[[17]]
+[[17]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[17]]$visible
+[1] FALSE
+
+
+[[18]]
+[[18]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[18]]$visible
+[1] FALSE
+
+
+[[19]]
+[[19]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[19]]$visible
+[1] FALSE
+
+
+[[20]]
+[[20]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[20]]$visible
+[1] FALSE
+
+
+[[21]]
+[[21]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[21]]$visible
+[1] FALSE
+
+
+[[22]]
+[[22]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[22]]$visible
+[1] FALSE
+
+
+[[23]]
+[[23]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[23]]$visible
+[1] FALSE
+
+
+[[24]]
+[[24]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[24]]$visible
+[1] FALSE
+
+
+[[25]]
+[[25]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[25]]$visible
+[1] FALSE
+
+
+[[26]]
+[[26]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[26]]$visible
+[1] FALSE
+
+
+[[27]]
+[[27]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[27]]$visible
+[1] FALSE
+
+
+[[28]]
+[[28]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[28]]$visible
+[1] FALSE
+
+
+[[29]]
+[[29]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[29]]$visible
+[1] FALSE
+
+
+[[30]]
+[[30]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[30]]$visible
+[1] FALSE
+
+
+[[31]]
+[[31]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[31]]$visible
+[1] FALSE
+
+
+[[32]]
+[[32]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[32]]$visible
+[1] FALSE
+
+
+[[33]]
+[[33]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[33]]$visible
+[1] FALSE
+
+
+[[34]]
+[[34]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[34]]$visible
+[1] FALSE
+
+
+[[35]]
+[[35]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[35]]$visible
+[1] FALSE
+
+
+[[36]]
+[[36]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[36]]$visible
+[1] FALSE
+
+
+[[37]]
+[[37]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[37]]$visible
+[1] FALSE
+
+
+[[38]]
+[[38]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[38]]$visible
+[1] FALSE
+
+
+[[39]]
+[[39]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[39]]$visible
+[1] FALSE
+
+
+[[40]]
+[[40]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[40]]$visible
+[1] FALSE
+
+
+[[41]]
+[[41]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[41]]$visible
+[1] FALSE
+
+
+[[42]]
+[[42]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[42]]$visible
+[1] FALSE
+
+
+[[43]]
+[[43]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[43]]$visible
+[1] FALSE
+
+
+[[44]]
+[[44]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[44]]$visible
+[1] FALSE
+
+
+[[45]]
+[[45]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[45]]$visible
+[1] FALSE
+
+
+[[46]]
+[[46]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[46]]$visible
+[1] FALSE
+
+
+[[47]]
+[[47]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[47]]$visible
+[1] FALSE
+
+
+[[48]]
+[[48]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[48]]$visible
+[1] FALSE
+
+
+[[49]]
+[[49]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[49]]$visible
+[1] FALSE
+
+
+[[50]]
+[[50]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[50]]$visible
+[1] FALSE
+
+
+[[51]]
+[[51]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[51]]$visible
+[1] FALSE
+
+
+[[52]]
+[[52]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[52]]$visible
+[1] FALSE
+
+
+[[53]]
+[[53]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[53]]$visible
+[1] FALSE
+
+
+[[54]]
+[[54]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[54]]$visible
+[1] FALSE
+
+
+[[55]]
+[[55]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[55]]$visible
+[1] FALSE
+
+
+[[56]]
+[[56]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[56]]$visible
+[1] FALSE
+
+
+[[57]]
+[[57]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[57]]$visible
+[1] FALSE
+
+
+[[58]]
+[[58]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[58]]$visible
+[1] FALSE
+
+
+[[59]]
+[[59]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[59]]$visible
+[1] FALSE
+
+
+[[60]]
+[[60]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[60]]$visible
+[1] FALSE
+
+
+[[61]]
+[[61]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[61]]$visible
+[1] FALSE
+
+
+[[62]]
+[[62]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[62]]$visible
+[1] FALSE
+
+
+[[63]]
+[[63]]$value
+function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list, 
+    gamma = NULL) 
+{
+    n <- nrow(X_lab)
+    N <- nrow(X_unlab)
+    eta <- N/(n + N)
+    if (is.null(gamma)) 
+        gamma <- -eta
+    theta0 <- as.vector(solve(t(X_lab) %*% X_lab, t(X_lab) %*% 
+        Y_lab))
+    H_hat <- (t(X_lab) %*% X_lab)/n
+    s_of <- function(theta, X, Y) as.vector(X %*% theta - Y) * 
+        X
+    f_of <- function(theta, X, mu_list) {
+        do.call(cbind, lapply(mu_list, function(mu) as.vector(X %*% 
+            theta - mu) * X))
+    }
+    s_lab <- s_of(theta0, X_lab, Y_lab)
+    f_lab <- f_of(theta0, X_lab, mu_lab_list)
+    f_unlab <- f_of(theta0, X_unlab, mu_unlab_list)
+    s1 <- colMeans(s_lab)
+    s2 <- colMeans(f_lab)
+    s3 <- colMeans(f_unlab)
+    T_hat <- cov(s_lab, f_lab) %*% solve(cov(f_lab))
+    S_hat <- s1 + gamma * as.vector(T_hat %*% (s2 - s3))
+    theta_pdc <- theta0 - as.vector(solve(H_hat, S_hat))
+    Gamma_hat <- cov(s_lab) + (gamma^2/eta + 2 * gamma) * (T_hat %*% 
+        cov(f_lab, s_lab))
+    H_inv <- solve(H_hat)
+    V_hat <- H_inv %*% Gamma_hat %*% t(H_inv)
+    se <- sqrt(diag(V_hat)/n)
+    list(est = theta_pdc, se = se)
+}
+
+[[63]]$visible
+[1] FALSE
+
+
+> 
+> n_sims <- 1000
+> alpha  <- 0.1
+> z_crit <- qnorm(1 - alpha / 2)
+> n <- 1000; N <- 5000; p <- 4
+> beta_1s <- 0:10
+> 
+> grid <- expand.grid(beta_1 = beta_1s, sim = 1:n_sims)
+> log_file <- "logs/progress_beta3.log"
+> if (file.exists(log_file)) file.remove(log_file)
+[1] TRUE
+> 
+> results <- foreach(row = 1:nrow(grid), .combine = rbind,
++                    .packages = c("ipd", "randomForest")) %dopar% {
++                      
++                      beta_1 <- grid$beta_1[row]
++                      i      <- grid$sim[row]
++                      set.seed(i)
++                      
++                      if (row %% 50 == 0) {
++                        cat(sprintf("[%d/%d] beta_1=%d sim=%d\n", row, nrow(grid), beta_1, i),
++                            file = log_file, append = TRUE)
++                      }
++                      
++                      beta_vec   <- c(beta_1, -1, -2, -2)
++                      true_theta <- beta_1
++                      
++                      X_1 <- rmvn(n, mu = rep(0, p), sigma = diag(p))
++                      zeta_1 <- rlnorm(n, meanlog = 0, sdlog = 1)
++                      Y_1 <- X_1 %*% beta_vec + (X_1^3) %*% beta_vec + exp(X_1) %*% beta_vec + zeta_1
++                      
++                      X_2 <- rmvn(n, mu = rep(0, p), sigma = diag(p))
++                      zeta_2 <- rt(n, df = 3)
++                      Y_2 <- (X_2^2) %*% beta_vec + zeta_2
++                      
++                      rf1 <- randomForest(x = X_1, y = as.vector(Y_1))
++                      rf2 <- randomForest(x = X_2, y = as.vector(Y_2))
++                      
++                      X <- rmvn(n, mu = rep(0, p), sigma = diag(p))
++                      zeta <- rnorm(n, mean = 0, sd = 1)
++                      Y <- 1 + X %*% beta_vec + (X^2 - 1) %*% beta_vec + zeta
++                      x <- rmvn(N, mu = rep(0, p), sigma = diag(p))
++                      
++                      mu1_lab   <- as.vector(predict(rf1, newdata = X))
++                      mu2_lab   <- as.vector(predict(rf2, newdata = X))
++                      mu1_unlab <- as.vector(predict(rf1, newdata = x))
++                      mu2_unlab <- as.vector(predict(rf2, newdata = x))
++                      
++                      labelled_data   <- cbind(Y, X)
++                      unlabelled_data <- x
++                      X_int <- cbind(1, X)
++                      x_int <- cbind(1, x)
++                      
++                      naive_fit <- lm(Y ~ X)
++                      theta_hat <- coef(naive_fit)
++                      e <- residuals(naive_fit)
++                      XtX_inv <- solve(crossprod(X_int))
++                      meat <- crossprod(X_int * e) 
++                      V <- XtX_inv %*% meat %*% XtX_inv
++                      
++                      naive_est <- theta_hat[2]
++                      naive_se  <- sqrt(diag(V))[2]   
++                      
++                      azriel_fit <- PI_se(labelled_data, unlabelled_data)
++                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
++                      
++                      pdc_fit  <- pdc_ols_multi(X_int, Y, list(mu1_lab, mu2_lab), x_int, list(mu1_unlab, mu2_unlab))
++                      pdc_est  <- pdc_fit$est[2]; pdc_se <- pdc_fit$se[2]
++                      
++                      pdc1_fit <- pdc_ols_multi(X_int, Y, list(mu1_lab), x_int, list(mu1_unlab))
++                      pdc1_est <- pdc1_fit$est[2]; pdc1_se <- pdc1_fit$se[2]
++                      
++                      pdc2_fit <- pdc_ols_multi(X_int, Y, list(mu2_lab), x_int, list(mu2_unlab))
++                      pdc2_est <- pdc2_fit$est[2]; pdc2_se <- pdc2_fit$se[2]
++                      
++                      pp_fit  <- ipd::ppi_plusplus_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
++                      pp_est  <- pp_fit$est[2]; pp_se <- pp_fit$se[2]
++                      
++                      ppi_fit <- ipd::ppi_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
++                      ppi_est <- ppi_fit$est[2]; ppi_se <- ppi_fit$se[2]
++                      
++                      pspa_fit <- ipd::pspa_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
++                      pspa_est <- pspa_fit$est[2]; pspa_se <- pspa_fit$se[2]
++                      
++                      song_fit <- PSSE(labelled_data, unlabelled_data, type = "linear", sd = TRUE)
++                      song_est <- song_fit$Hattheta[2]; song_se <- song_fit$sd.of.hattheta[2]
++                      
++                      ests <- c(naive_est, azriel_est, pdc_est, pdc1_est, pdc2_est, pp_est, ppi_est, pspa_est, song_est)
++                      ses  <- c(naive_se,  azriel_se,  pdc_se,  pdc1_se,  pdc2_se,  pp_se,  ppi_se,  pspa_se,  song_se)
++                      los  <- ests - z_crit * ses
++                      his  <- ests + z_crit * ses
++                      
++                      data.frame(
++                        beta_1 = beta_1, sim = i,
++                        Estimator = c("Naive", "Azriel", "PDC", "PDC1", "PDC2", "PPI++", "PPI", "PSPA", "Song"),
++                        Covered = (true_theta >= los) & (true_theta <= his),
++                        Width   = ses / naive_se
++                      )
++                    }
