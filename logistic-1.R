@@ -5,12 +5,12 @@ library(stratifiedSSL)
 
 source("logistic-data-generation.R")
 
-n_cores <- parallel::detectCores() - 1
+n_cores <- parallel::detectCores() - 4
 cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 
 clusterEvalQ(cl, {
-  library(ipd); library(MASS); library(mvnfast); library(stratifiedSSL); library(caret)
+  library(ipd); library(MASS); library(mvnfast); library(stratifiedSSL); library(caret); library(fastglm)
   source("utils/ssl_logistic_light.R")
   source("utils/song_et_al_2024_code/semi_supervised_methods.R")
   source("utils/song_et_al_2024_code/SupervisedEstimation.R")

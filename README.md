@@ -4,4 +4,21 @@ This repository contains the replication codes for the report "Post-Prediction I
 
 To ensure a smooth replication experience, please clone the repository and install the required packages listed below:
 
-[TODO]
+```r
+# If you have not installed the 'pak' package, run
+# install.packages("pak")
+
+pak::pkg_install(
+  c(
+    "foreach",
+    "doParallel",
+    "dplyr",
+    "ggplot2"
+    "ipd",
+    "jlgrons/stratifiedSSL",
+    "caret",
+    "MASS",
+    "mvnfast"
+  )
+)
+```
