@@ -23,7 +23,7 @@ true_theta <- true_thetas[[dgm_name]][2]   # coefficient on X1
 
 N <- 20000
 n_train <- 10000
-ns <- c(200, 400)
+ns <- c(500, 1000)
 n_sims <- 1000
 alpha <- 0.1
 z_crit <- qnorm(1 - alpha / 2)
@@ -35,7 +35,7 @@ if (file.exists(log_file)) file.remove(log_file)
 
 results <- foreach(row = 1:nrow(grid), .combine = rbind,
                    .packages = c("ipd", "stratifiedSSL"),
-                   .errorhandling = "stop") %dopar% {
+                   .errorhandling = "remove") %dopar% {
                      
                      n <- grid$n[row]
                      i <- grid$sim[row]
