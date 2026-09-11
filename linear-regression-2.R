@@ -50,14 +50,24 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      labelled_data   <- cbind(Y, X)
                      unlabelled_data <- x
                      
-                     naive_fit <- summary(lm(Y ~ X))$coefficients
-                     naive_est <- naive_fit[2, 1]; naive_se <- naive_fit[2, 2]
-                     
-                     azriel_fit <- PI_se(labelled_data, unlabelled_data)
-                     azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
                      
                      X_int <- cbind(1, X)
                      x_int <- cbind(1, x)
+                     
+                     naive_fit <- lm(Y ~ X)
+                     theta_hat <- coef(naive_fit)
+                     e <- residuals(naive_fit)
+                     XtX_inv <- solve(crossprod(X_int))
+                     meat <- crossprod(X_int * e) 
+                     V <- XtX_inv %*% meat %*% XtX_inv
+                     
+                     naive_est <- theta_hat[2]
+                     naive_se  <- sqrt(diag(V))[2]   
+                     
+                     
+                     azriel_fit <- PI_se(labelled_data, unlabelled_data)
+                     azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
+
                      
                      pdc_fit <- ipd::pdc_ols(X_int, Y, mu_lab, x_int, mu_unlab, intercept = TRUE)
                      pdc_est <- pdc_fit$est[2]; pdc_se <- pdc_fit$se[2]

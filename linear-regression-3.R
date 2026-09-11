@@ -66,8 +66,15 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      X_int <- cbind(1, X)
                      x_int <- cbind(1, x)
                      
-                     naive_fit <- summary(lm(Y ~ X))$coefficients
-                     naive_est <- naive_fit[2, 1]; naive_se <- naive_fit[2, 2]
+                     naive_fit <- lm(Y ~ X)
+                     theta_hat <- coef(naive_fit)
+                     e <- residuals(naive_fit)
+                     XtX_inv <- solve(crossprod(X_int))
+                     meat <- crossprod(X_int * e) 
+                     V <- XtX_inv %*% meat %*% XtX_inv
+                     
+                     naive_est <- theta_hat[2]
+                     naive_se  <- sqrt(diag(V))[2]   
                      
                      azriel_fit <- PI_se(labelled_data, unlabelled_data)
                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
