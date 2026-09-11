@@ -5,7 +5,7 @@ library(stratifiedSSL)
 
 source("logistic-data-generation.R")
 
-n_cores <- parallel::detectCores() - 1
+n_cores <- 8
 cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 
@@ -39,11 +39,11 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      n <- grid$n[row]
                      i <- grid$sim[row]
                      set.seed(i)
-                     
-                     if (row %% 200 == 0) {
-                       cat(sprintf("[%d/%d] dgm=%s n=%d sim=%d\n", row, nrow(grid), dgm_name, n, i),
+                    
+                    # if (row %% 200 == 0) {
+                      cat(sprintf("[%d/%d] dgm=%s n=%d sim=%d\n", row, nrow(grid), dgm_name, n, i),
                            file = log_file, append = TRUE)
-                     }
+                    #}
                      
                      # Independent training sample -> fit the working classifier
                      X_train <- gen_x(n_train)
