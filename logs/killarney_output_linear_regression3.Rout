@@ -2646,3 +2646,15 @@ function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list,
 +                        Width   = ses / naive_se
 +                      )
 +                    }
+> 
+> stopCluster(cl)
+> 
+> final_results_beta3 <- results %>%
++   group_by(beta_1, Estimator) %>%
++   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
+> 
+> saveRDS(final_results_beta3, "data/linear-regression-3-results.rds")
+> 
+> proc.time()
+     user    system   elapsed 
+    7.935     0.824 31211.386 
