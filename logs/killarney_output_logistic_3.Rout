@@ -483,3 +483,7 @@ function (Data, option, tau = 0.5)
 +                        Width   = ses / naive_se
 +                      )
 +                    }
+Error in { : 
+  task 89 failed - "system is computationally singular: reciprocal condition number = 9.76068e-18"
+Calls: %dopar% -> <Anonymous>
+Execution halted
