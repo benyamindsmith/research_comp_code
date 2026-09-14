@@ -3,7 +3,7 @@
 #SBATCH -p cpu
 #SBATCH -o logs/killarney_output.out
 #SBATCH --mem=120000
-#SBATCH -t 7-00:00:00
+#SBATCH -t 1-00:00:00
 #SBATCH -J simulations
 
 module load StdEnv/2023
