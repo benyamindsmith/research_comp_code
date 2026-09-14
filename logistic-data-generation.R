@@ -3,16 +3,22 @@ library(mvnfast)
 # ============================================================
 # Design constants relevant to the true target parameters
 # ============================================================
-rho <- 0.2
 p <- 10
-
 theta0 <- c(-4, 1, 1, 0.5, 0.5, rep(0, p - 4))   # theta0[1] = intercept
-Sigma <- matrix(3 * rho, p, p); diag(Sigma) <- 3
+
+# rho now varies across the simulation grid rather than being fixed at
+# source time, so Sigma is built on demand inside gen_x().
+make_Sigma <- function(rho) {
+  Sigma <- matrix(3 * rho, p, p)
+  diag(Sigma) <- 3
+  Sigma
+}
 
 # ============================================================
 # Data-generating mechanisms
 # ============================================================
-gen_x <- function(n) {
+gen_x <- function(n, rho) {
+  Sigma <- make_Sigma(rho)
   Z <- rmvn(n, mu = rep(0, p), sigma = Sigma)
   B <- rbinom(n, 3, 0.3)
   Z + B   # adds scalar B to every column
@@ -37,15 +43,34 @@ gen_y_dgm3 <- function(X) {
 dgm_list <- list(dgm1 = gen_y_dgm1, dgm2 = gen_y_dgm2, dgm3 = gen_y_dgm3)
 
 # ============================================================
-# One-time Monte Carlo "true" theta* per DGM
-# (the pseudo-true parameter the working logistic model
-# converges to under misspecification, e.g. DGM 2 / DGM 3)
+# rho grid
 # ============================================================
-set.seed(20240101)
-true_thetas <- lapply(names(dgm_list), function(dgm_name) {
-  X_mc <- gen_x(50000)
+# Valid range for this compound-symmetry Sigma (diag = 3, off-diag = 3*rho,
+# p = 10) is rho in [-1/9, 1] for positive semi-definiteness. 0 to 0.9 in
+# steps of 0.1 sweeps independence -> strong correlation within that range.
+rho_grid <- seq(0, 0.9, by = 0.1)
+
+# ============================================================
+# Monte Carlo "true" theta* per (DGM, rho) combination
+# (the pseudo-true parameter the working logistic model converges to
+# under misspecification, e.g. DGM 2 / DGM 3). Must be recomputed per
+# rho because the covariate distribution -- and hence the pseudo-true
+# parameter under misspecification -- depends on rho. DGM1 is correctly
+# specified, so its true theta is theta0 regardless of rho, but we
+# still compute it via the same MC procedure for consistency; it will
+# simply converge numerically to theta0.
+# ============================================================
+compute_true_theta <- function(dgm_name, rho, n_mc = 50000, seed = 20240101) {
+  set.seed(seed)
+  X_mc <- gen_x(n_mc, rho)
   Y_mc <- dgm_list[[dgm_name]](X_mc)
   coef(glm(Y_mc ~ X_mc, family = binomial))
+}
+
+true_thetas <- lapply(names(dgm_list), function(dgm_name) {
+  thetas_by_rho <- lapply(rho_grid, function(rho) compute_true_theta(dgm_name, rho))
+  names(thetas_by_rho) <- paste0("rho_", rho_grid)
+  thetas_by_rho
 })
 names(true_thetas) <- names(dgm_list)
 

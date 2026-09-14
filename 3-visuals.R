@@ -84,3 +84,13 @@ p11 <- make_panel(linear_regression_3, "beta_1", "Coverage", expression(beta[1])
 p12 <- make_panel(linear_regression_3, "beta_1", "Width_Ratio", expression(beta[1]), c(15, 16, 17, 18, 4, 2, 8,7,14))
 
 p11 + p12 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+
+############
+# Figure 7 #
+############
+
+p13 <- make_panel(logistic_1, "n", "Coverage", expression(beta[1]), c(15, 16, 17, 18, 4, 2, 8,7,14))
+p14 <- make_panel(logistic_1, "n", "Width_Ratio", expression(beta[1]), c(15, 16, 17, 18, 4, 2, 8,7,14))
+
+p13 + p14 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
+
