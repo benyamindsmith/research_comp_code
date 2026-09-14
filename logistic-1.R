@@ -5,7 +5,7 @@ library(stratifiedSSL)
 
 source("logistic-data-generation.R")
 
-n_cores <- 8
+n_cores <- parallel::detectCores() - 1
 cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 
@@ -26,6 +26,7 @@ n <- 1000
 n_sims <- 1000
 alpha <- 0.1
 z_crit <- qnorm(1 - alpha / 2)
+K_folds <- 5   # folds for cross-fitting the working classifier (see cross_fit_mu_lab)
 
 # rho_grid comes from logistic-data-generation.R (0 to 0.9 by 0.1)
 grid <- expand.grid(rho = rho_grid, sim = 1:n_sims, stringsAsFactors = FALSE)
@@ -52,16 +53,17 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                        Y <- gen_y(X)
                        x <- gen_x(N, rho)
                        
-                       # Working classifier fit directly on the labeled sample
-                       # (NOTE: this makes mu_lab an in-sample fitted value,
-                       # not an out-of-sample prediction -- see caveat above)
-                       clf <- glm(Y ~ X, family = binomial)
+                       # mu_lab: K-fold cross-fitted predictions (see
+                       # cross_fit_mu_lab() in logistic-data-generation.R)
+                       # mu_unlab: classifier fit on the full labeled sample,
+                       # predicted on the (already held-out) unlabeled sample
+                       clf_full <- glm(Y ~ X, family = binomial)
                        
                        X_int <- cbind(1, X)
                        x_int <- cbind(1, x)
                        
-                       mu_lab   <- matrix(predict(clf, newdata = data.frame(X = I(X)), type = "response"), ncol = 1)
-                       mu_unlab <- matrix(predict(clf, newdata = data.frame(X = I(x)), type = "response"), ncol = 1)
+                       mu_lab   <- matrix(cross_fit_mu_lab(X, Y, K = K_folds), ncol = 1)
+                       mu_unlab <- matrix(predict(clf_full, newdata = data.frame(X = I(x)), type = "response"), ncol = 1)
                        
                        naive_fit <- summary(glm(Y ~ X, family = binomial))$coefficients
                        naive_est <- naive_fit[2, 1]; naive_se <- naive_fit[2, 2]

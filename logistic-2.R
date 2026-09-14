@@ -5,7 +5,7 @@ library(stratifiedSSL)
 
 source("logistic-data-generation.R")
 
-n_cores <- 8
+n_cores <- parallel::detectCores() - 1
 cl <- makeCluster(n_cores)
 registerDoParallel(cl)
 

@@ -60,7 +60,7 @@ rho_grid <- seq(0, 0.9, by = 0.1)
 # still compute it via the same MC procedure for consistency; it will
 # simply converge numerically to theta0.
 # ============================================================
-compute_true_theta <- function(dgm_name, rho, n_mc = 50000, seed = 20240101) {
+compute_true_theta <- function(dgm_name, rho, n_mc = 50000, seed = 20260901) {
   set.seed(seed)
   X_mc <- gen_x(n_mc, rho)
   Y_mc <- dgm_list[[dgm_name]](X_mc)
@@ -75,3 +75,37 @@ true_thetas <- lapply(names(dgm_list), function(dgm_name) {
 names(true_thetas) <- names(dgm_list)
 
 saveRDS(true_thetas, "data/gronsbell-true-thetas.rds")
+
+# ============================================================
+# K-fold cross-fitting for the working classifier
+# ============================================================
+# Gan et al. (2024), "Prediction De-Correlated Inference," require the
+# predictive model to be independent of the labeled/unlabeled data used
+# for inference. When no separately pretrained model is available, they
+# prescribe cross-fitting rather than fitting directly on the full
+# labeled sample and predicting in-sample (which biases the correction
+# term the PDC/PPI/PPI++/PSPA estimators rely on).
+#
+# mu_lab: computed via K-fold cross-fitting -- each labeled point is
+#         predicted using a classifier trained on the *other* K-1 folds,
+#         so no prediction is made using a model that saw that point.
+# mu_unlab: computed using a classifier trained on the FULL labeled
+#           sample. This is fine without cross-fitting because the
+#           unlabeled sample x was never used in training -- it is
+#           already genuinely held-out data.
+cross_fit_mu_lab <- function(X, Y, K = 5) {
+  n <- nrow(X)
+  folds <- sample(rep(1:K, length.out = n))
+  mu_lab <- numeric(n)
+  for (k in seq_len(K)) {
+    test_idx  <- which(folds == k)
+    train_idx <- setdiff(seq_len(n), test_idx)
+    Xk <- X[train_idx, , drop = FALSE]
+    Yk <- Y[train_idx]
+    clf_k <- glm(Yk ~ Xk, family = binomial)
+    mu_lab[test_idx] <- predict(clf_k,
+                                newdata = data.frame(Xk = I(X[test_idx, , drop = FALSE])),
+                                type = "response")
+  }
+  mu_lab
+}
