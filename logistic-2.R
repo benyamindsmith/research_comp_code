@@ -109,4 +109,4 @@ final_results_logistic2 <- results %>%
   group_by(dgm, n, Estimator) %>%
   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
 
-saveRDS(final_results_logistic1, "data/logistic-2-results.rds")
+saveRDS(final_results_logistic2, "data/logistic-2-results.rds")

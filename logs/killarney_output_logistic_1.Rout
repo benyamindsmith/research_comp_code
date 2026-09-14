@@ -403,7 +403,7 @@ function (Data, option, tau = 0.5)
 > 
 > N <- 20000
 > n_train <- 10000
-> ns <- c(200, 400)
+> ns <- c(500, 1000)
 > n_sims <- 1000
 > alpha <- 0.1
 > z_crit <- qnorm(1 - alpha / 2)
@@ -416,7 +416,7 @@ function (Data, option, tau = 0.5)
 > 
 > results <- foreach(row = 1:nrow(grid), .combine = rbind,
 +                    .packages = c("ipd", "stratifiedSSL"),
-+                    .errorhandling = "stop") %dopar% {
++                    .errorhandling = "remove") %dopar% {
 +                      
 +                      n <- grid$n[row]
 +                      i <- grid$sim[row]
@@ -479,3 +479,15 @@ function (Data, option, tau = 0.5)
 +                        Width   = ses / naive_se
 +                      )
 +                    }
+> 
+> stopCluster(cl)
+> 
+> final_results_logistic1 <- results %>%
++   group_by(dgm, n, Estimator) %>%
++   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
+> 
+> saveRDS(final_results_logistic1, "data/logistic-1-results.rds")
+> 
+> proc.time()
+     user    system   elapsed 
+    3.055     0.379 16572.401 
