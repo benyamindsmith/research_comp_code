@@ -33,7 +33,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      
                      N <- grid$N[row]
                      i <- grid$sim[row]
-                     set.seed(i)
+                     set.seed(row)
                      if (row %% 50 == 0) {
                        cat(sprintf("[%d/%d] N=%d sim=%d\n", row, nrow(grid), N, i),
                            file = log_file, append = TRUE)

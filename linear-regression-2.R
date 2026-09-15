@@ -28,7 +28,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      
                      beta_1 <- grid$beta_1[row]
                      i      <- grid$sim[row]
-                     set.seed(i)
+                     set.seed(row)
                      
                      if (row %% 50 == 0) {
                        cat(sprintf("[%d/%d] beta_1=%d sim=%d\n", row, nrow(grid), beta_1, i),

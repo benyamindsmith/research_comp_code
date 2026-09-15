@@ -40,7 +40,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      
                      rho <- grid$rho[row]
                      i <- grid$sim[row]
-                     set.seed(i)
+                     set.seed(row)
                      
                      cat(sprintf("[%d/%d] dgm=%s rho=%.1f sim=%d\n", row, nrow(grid), dgm_name, rho, i),
                          file = log_file, append = TRUE)

@@ -38,7 +38,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                            file = log_file, append = TRUE)
                      }
                      
-                     set.seed(i)
+                     set.seed(row)
                      
                      zeta <- rnorm(n, mean = 0, sd = 1)
                      X <- mvnfast::rmvn(n, mu = rep(0, p), sigma = diag(p))
