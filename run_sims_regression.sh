@@ -13,4 +13,3 @@ R CMD BATCH --quiet --no-restore --no-save "linear-regression-1.R" "./logs/killa
 R CMD BATCH --quiet --no-restore --no-save "linear-regression-2.R" "./logs/killarney_output_linear_regression2.Rout"
 R CMD BATCH --quiet --no-restore --no-save "linear-regression-3.R" "./logs/killarney_output_linear_regression3.Rout"
 
-
