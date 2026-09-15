@@ -2,7 +2,7 @@
 #SBATCH -p cpu
 #SBATCH -J simulations
 #SBATCH -t 1-00:00:00
-#SBATCH --mem=16G
+#SBATCH --mem=120000
 #SBATCH --cpus-per-task=1
 #SBATCH --array=0-8
 #SBATCH -o logs/%x_%A_%a.out
