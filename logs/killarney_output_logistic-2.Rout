@@ -3016,3 +3016,15 @@ function (Data, option, tau = 0.5)
 +                        NULL
 +                      })
 +                    }
+> 
+> stopCluster(cl)
+> 
+> final_results_logistic2 <- results %>%
++   group_by(dgm, rho, Estimator) %>%
++   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
+> 
+> saveRDS(final_results_logistic2, "data/logistic-2-results.rds")
+> 
+> proc.time()
+     user    system   elapsed 
+   19.749     0.873 13789.388 

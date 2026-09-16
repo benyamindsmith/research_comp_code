@@ -1891,3 +1891,15 @@ function (Y_lab, mu_lab, mu_unlab, alpha = 0.05)
 +                      )
 +                      
 +                    }
+> 
+> stopCluster(cl)
+> 
+> final_results_mean2 <- results %>%
++   group_by(n, Estimator) %>%
++   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
+> 
+> saveRDS(final_results_mean2, "data/mean-estimation-2-results.rds")
+> 
+> proc.time()
+    user   system  elapsed 
+   7.860    0.780 2273.314 

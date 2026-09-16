@@ -3008,3 +3008,15 @@ function (Data, option, tau = 0.5)
 +                        Width   = ses / naive_se
 +                      )
 +                    }
+> 
+> stopCluster(cl)
+> 
+> final_results_beta1 <- results %>%
++   group_by(beta_1, Estimator) %>%
++   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
+> 
+> saveRDS(final_results_beta1, "data/linear-regression-1-results.rds")
+> 
+> proc.time()
+    user   system  elapsed 
+   8.545    1.116 4973.949 
