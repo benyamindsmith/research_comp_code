@@ -30,7 +30,7 @@ K_folds <- 5   # folds for cross-fitting the working classifier (see cross_fit_m
 
 # rho_grid comes from logistic-data-generation.R (0 to 0.9 by 0.1)
 grid <- expand.grid(rho = rho_grid, sim = 1:n_sims, stringsAsFactors = FALSE)
-
+W
 log_file <- "logs/progress_logistic1.log"
 if (file.exists(log_file)) file.remove(log_file)
 

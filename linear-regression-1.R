@@ -65,7 +65,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      naive_est <- theta_hat[2]
                      naive_se  <- sqrt(diag(V))[2]   
                      
-                     azriel_fit <- PI_se(labelled_data, unlabelled_data)
+                     azriel_fit <- PI_se(labelled_data, unlabelled_data,intercept_se = "none")
                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
                      
                      

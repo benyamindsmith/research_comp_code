@@ -19,9 +19,6 @@ SCRIPTS=(
   "mean-estimation-1.R"
   "mean-estimation-2.R"
   "mean-estimation-3.R"
-  "linear-regression-1.R"
-  "linear-regression-2.R"
-  "linear-regression-3.R"
 )
 
 # Select the target script for this specific array task

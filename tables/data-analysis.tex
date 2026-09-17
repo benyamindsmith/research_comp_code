@@ -1,0 +1,23 @@
+\begin{table}[tb]
+\centering
+\caption{Results from applying different methods to the Los Angeles homeless dataset described in Section 4.2.}
+\label{tab:la-homeless}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{Intercept} & \multicolumn{3}{c}{Perc. vacant} & \multicolumn{3}{c}{Perc. minority} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+Method & $\hat{\theta}$ & $\widehat{\mathrm{SD}}$ & WR & $\hat{\theta}$ & $\widehat{\mathrm{SD}}$ & WR & $\hat{\theta}$ & $\widehat{\mathrm{SD}}$ & WR \\
+\midrule
+SUP & 11.439 & 0.262 & --- & 0.883 & \textbf{0.252} & --- & 0.171 & 0.280 & --- \\
+Azriel & 11.441 & 0.261 & 0.999 & 0.845 & 0.271 & 1.074 & 0.134 & \textbf{0.232} & \textbf{0.830} \\
+PDC & 11.412 & 0.261 & 0.997 & 0.881 & 0.269 & 1.068 & 0.230 & 0.278 & 0.995 \\
+PPI++ & 11.435 & \textbf{0.258} & \textbf{0.987} & 0.894 & 0.279 & 1.105 & 0.190 & \textbf{0.237} & \textbf{0.846} \\
+PPI & 11.341 & 0.466 & 1.780 & 1.141 & 0.455 & 1.804 & 0.619 & 0.540 & 1.929 \\
+PSPA & 11.426 & \textbf{0.257} & \textbf{0.984} & 0.859 & 0.278 & 1.102 & 0.208 & \textbf{0.236} & \textbf{0.845} \\
+Song & 11.598 & \textbf{0.245} & \textbf{0.936} & 0.913 & \textbf{0.254} & \textbf{1.007} & 0.192 & \textbf{0.237} & \textbf{0.848} \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{\linewidth}\vspace{2pt}\footnotesize
+\textit{Notes:} $\hat{\theta}$, the point estimator; $\widehat{\mathrm{SD}}$, the estimated standard deviation; WR, the ratio of the CI's width to that of the supervised counterpart. WR is 1 by definition for the supervised estimator and is omitted. \textbf{Bold} indicates a smaller estimated SD than PDC.
+\end{minipage}
+\end{table}

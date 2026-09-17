@@ -22,3 +22,6 @@ pak::pkg_install(
   )
 )
 ```
+
+TODO:
+- DELETE ALL LOGISTIC CODE

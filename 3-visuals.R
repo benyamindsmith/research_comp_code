@@ -280,3 +280,16 @@ p18 <- make_panel(
 fig9 <- p17 + p18 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
 
 fig9
+
+# Save plots
+plot_list <- list(fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9)
+for (i in seq_along(plot_list)) {
+  ggsave(
+    filename = paste0("figs/fig", i, ".png"), 
+    plot = plot_list[[i]],
+    width = 1231 * 3,       
+    height = 597 * 3,                        
+    units = "px",                                 
+    dpi = 300                                     
+  )
+}
