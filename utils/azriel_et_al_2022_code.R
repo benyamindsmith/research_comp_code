@@ -51,7 +51,7 @@ PI_se <- function(labelled_data, unlabelled_data,
   X_int       <- cbind(1, X_labelled)
   delta_LSE   <- residuals(lm(labelled_data[, 1] ~ X_labelled))
   XtX_inv     <- solve(t(X_int) %*% X_int)
-  AV_LSE_full <- XtX_inv %*% (t(X_int) %*% (delta_LSE^2 * X_int)) %*% XtX_inv
+  AV_LSE_full <- n * XtX_inv %*% (t(X_int) %*% (delta_LSE^2 * X_int)) %*% XtX_inv
   AV_LSE      <- AV_LSE_full[-1, -1, drop = FALSE]  # drop intercept row/col
   
   AV_PI <- Cov_delta + nu * (AV_LSE - Cov_delta)
