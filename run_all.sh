@@ -13,9 +13,9 @@ module load r/4.6.1
 
 # Define all 9 scripts in an indexed array
 SCRIPTS=(
-  "logistic-1.R"
-  "logistic-2.R"
-  "logistic-3.R"
+  "linear-regression-1.R"
+  "linear-regression-2.R"
+  "linear-regression-3.R"
   "mean-estimation-1.R"
   "mean-estimation-2.R"
   "mean-estimation-3.R"
