@@ -2977,7 +2977,7 @@ function (Data, option, tau = 0.5)
 +                      naive_se  <- sqrt(diag(V))[2]   
 +                      
 +                      
-+                      azriel_fit <- PI_se(labelled_data, unlabelled_data)
++                      azriel_fit <- PI_se(labelled_data, unlabelled_data,intercept_se = "none")
 +                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
 + 
 +                      
@@ -3019,4 +3019,4 @@ function (Data, option, tau = 0.5)
 > 
 > proc.time()
     user   system  elapsed 
-   8.559    1.139 4966.170 
+   7.565    0.796 4642.576 

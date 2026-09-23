@@ -2610,7 +2610,7 @@ function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list,
 +                      naive_est <- theta_hat[2]
 +                      naive_se  <- sqrt(diag(V))[2]   
 +                      
-+                      azriel_fit <- PI_se(labelled_data, unlabelled_data)
++                      azriel_fit <- PI_se(labelled_data, unlabelled_data, intercept_se = "none")
 +                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
 +                      
 +                      pdc_fit  <- pdc_ols_multi(X_int, Y, list(mu1_lab, mu2_lab), x_int, list(mu1_unlab, mu2_unlab))
@@ -2646,15 +2646,3 @@ function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list,
 +                        Width   = ses / naive_se
 +                      )
 +                    }
-> 
-> stopCluster(cl)
-> 
-> final_results_beta3 <- results %>%
-+   group_by(beta_1, Estimator) %>%
-+   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
-> 
-> saveRDS(final_results_beta3, "data/linear-regression-3-results.rds")
-> 
-> proc.time()
-     user    system   elapsed 
-    8.636     0.883 32286.381 
