@@ -2,17 +2,6 @@
 # "Semi-Supervised Linear Regression"
 # By Azriel et al. (2022) is not available publicly.
 # Based on code from Song et al.
-#
-# INPUT CONVENTION: labelled_data and unlabelled_data must be numeric MATRICES.
-#   labelled_data   : column 1 = response, remaining columns = predictors
-#   unlabelled_data : predictor columns only
-#   NO intercept column -- PI()/PI_se() add their own internally.
-#
-# intercept_se = how to compute the standard error of the intercept, which
-#   Azriel et al.'s eq. (28) does not cover (it applies to the slopes only):
-#     "influence" (default) -- delta-method / influence-function variance
-#     "bootstrap"           -- nonparametric bootstrap over the labelled rows
-#     "none"                -- legacy behaviour, returns NA for the intercept
 
 PI_se <- function(labelled_data, unlabelled_data,
                   intercept_se = c("influence", "bootstrap", "none"), B = 500) {
@@ -59,7 +48,7 @@ PI_se <- function(labelled_data, unlabelled_data,
   
   se_beta <- sqrt(diag(AV_PI) / n)
   
-  # ---- standard error of the intercept ---------------------------------------
+  # ---- standard error of the intercept -----------
   # PI() sets hat_alpha = mean(Y) - hat_beta' * colMeans(X_labelled), so
   #   hat_alpha - alpha ~= mean_i[(Y_i - muY) - (X_i - muX)'beta] - muX'(hat_beta - beta)
   # and hat_beta - beta is represented by the delta_tilde influence function

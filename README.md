@@ -1,6 +1,6 @@
-# Simulation Code for "Post-Prediction Inference under Model Misspecification"
+# Simulation Code for "Post-Prediction Inference under Model Misspecification:  An Evaluation of the PDC Framework"
 
-This repository contains the replication codes for the report "Post-Prediction Inference under Model Misspecification" by Benjamin Smith. 
+This repository contains the replication codes for the report "Post-Prediction Inference under Model Misspecification:  An Evaluation of the PDC Framework" by Benjamin Smith. 
 
 To ensure a smooth replication experience, please clone the repository and install the required packages listed below:
 
@@ -13,15 +13,45 @@ pak::pkg_install(
     "foreach",
     "doParallel",
     "dplyr",
-    "ggplot2"
+    "readr",
     "ipd",
-    "jlgrons/stratifiedSSL",
-    "caret",
     "MASS",
-    "mvnfast"
+    "mvnfast",
+    "caret",
+    "randomForest",
+    "quantreg",
+    "ggplot2",
+    "patchwork"
   )
 )
 ```
 
-TODO:
-- DELETE ALL LOGISTIC CODE
+For best results, ensure you are running `R` version 4.6.1. 
+
+# Simulation Study
+
+To run the simulation studies locally, run the following commands in `R`:
+
+```r
+source("1-run-sims.R")
+```
+
+To run simulation studies on a SLURM cluster, run in the terminal on your login node:
+
+```sh
+sbatch run_sims.sh
+```
+
+To post-process the data for Figures 1-6, run in `R`.
+
+```r
+source(2-load-transform.R)
+source(3-visuals.R)
+```
+
+# Data Analysis
+
+To run the data analysis and replicate the results from Table 1, run in `R`:
+```r
+source("data-analysis.R")
+```

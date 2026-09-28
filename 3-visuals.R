@@ -200,89 +200,9 @@ fig6 <- p11 + p12 + plot_layout(guides = "collect") & theme(legend.position = "b
 
 fig6
 
-############
-# Figure 7 #
-############
-p13 <- make_panel(
-  data = logistic_1, 
-  x = "rho", 
-  y = "Coverage", 
-  xlab = expression(rho), 
-  shape_values = c(15, 16, 17, 18, 4, 2, 8, 7, 14),
-  ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)]))
-)
-
-p14 <- make_panel(
-  data = logistic_1, 
-  x = "rho", 
-  y = "Width_Ratio", 
-  xlab = expression(rho), 
-  shape_values = c(15, 16, 17, 18, 4, 2, 8, 7, 14),
-  ylab = "Width Ratio",
-  sub_caption = expression(paste(bold("(b) "), "Width ratio"))
-)
-
-fig7 <- p13 + p14 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
-
-fig7
-
-############
-# Figure 8 #
-############
-p15 <- make_panel(
-  data = logistic_2, 
-  x = "rho", 
-  y = "Coverage", 
-  xlab = expression(rho), 
-  shape_values = c(15, 16, 17, 18, 4, 2, 8, 7, 14),
-  ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)]))
-)
-
-p16 <- make_panel(
-  data = logistic_2, 
-  x = "rho", 
-  y = "Width_Ratio", 
-  xlab = expression(rho), 
-  shape_values = c(15, 16, 17, 18, 4, 2, 8, 7, 14),
-  ylab = "Width Ratio",
-  sub_caption = expression(paste(bold("(b) "), "Width ratio"))
-)
-
-fig8 <- p15 + p16 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
-
-fig8
-
-############
-# Figure 9 #
-############
-p17 <- make_panel(
-  data = logistic_3, 
-  x = "rho", 
-  y = "Coverage", 
-  xlab = expression(rho), 
-  shape_values = c(15, 16, 17, 18, 4, 2, 8, 7, 14),
-  ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)]))
-)
-
-p18 <- make_panel(
-  data = logistic_3, 
-  x = "rho", 
-  y = "Width_Ratio", 
-  xlab = expression(rho), 
-  shape_values = c(15, 16, 17, 18, 4, 2, 8, 7, 14),
-  ylab = "Width Ratio",
-  sub_caption = expression(paste(bold("(b) "), "Width ratio"))
-)
-
-fig9 <- p17 + p18 + plot_layout(guides = "collect") & theme(legend.position = "bottom")
-
-fig9
 
 # Save plots
-plot_list <- list(fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9)
+plot_list <- list(fig1, fig2, fig3, fig4, fig5, fig6)
 for (i in seq_along(plot_list)) {
   ggsave(
     filename = paste0("figs/fig", i, ".png"), 
