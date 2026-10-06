@@ -1,7 +1,5 @@
 # Replication of Gan et al. (2024), Table 1 -- Los Angeles homeless dataset
 
-# Replication of Gan et al. (2024), Table 1 -- Los Angeles homeless dataset
-
 library(ipd)
 library(MASS)
 library(caret)
@@ -98,8 +96,6 @@ song_fit <- PSSE(labelled_data   = labelled_mat,
 song_est <- song_fit$Hattheta
 song_se  <- song_fit$sd.of.hattheta
 
-#  Chen-Chen, PPI and PDC via pb_estimation()
-# family must be a string ("gaussian"), not gaussian().
 pb_formula <- StTotal ~ Perc.Vacant + Perc.Minority
 pb_types   <- c("chen-chen", "ppi", "pdc","ppi_plusplus")
 
@@ -115,19 +111,15 @@ table_predictors <- c("Intercept", "Perc. vacant", "Perc. minority")
 methods <- list(
   SUP         = list(est = sup_coef,      se = sup_se),
   Azriel      = list(est = azriel_est,    se = azriel_se),
-  PDC         = list(est = fit_pdc$est,   se = fit_pdc$se),
-  `PPI++`     = list(est = fit_ppipp$est, se = fit_ppipp$se),
-  PPI         = list(est = fit_ppi$est,   se = fit_ppi$se),
-  PSPA        = list(est = pspa_fit$est,  se = pspa_fit$se),
-  Song        = list(est = song_est,      se = song_se),
-  `Chen-Chen (EE)` = list(est = fit_pb[["chen-chen"]]$Estimate,
-                          se  = fit_pb[["chen-chen"]]$Std.Error),
-  `PPI (EE)`  = list(est = fit_pb[["ppi"]]$Estimate,
+  PDC         = list(est = fit_pb[["pdc"]]$Estimate,
+                     se  = fit_pb[["pdc"]]$Std.Error),
+  `PPI++`     = list(est = fit_pb[["ppi_plusplus"]]$Estimate, se = fit_pb[["ppi_plusplus"]]$Std.Error),
+  PPI         = list(est = fit_pb[["ppi"]]$Estimate,
                      se  = fit_pb[["ppi"]]$Std.Error),
-  `PPI++ (EE)`  = list(est = fit_pb[["ppi_plusplus"]]$Estimate,
-                       se  = fit_pb[["ppi_plusplus"]]$Std.Error),
-  `PDC (EE)`  = list(est = fit_pb[["pdc"]]$Estimate,
-                     se  = fit_pb[["pdc"]]$Std.Error)
+  `POP-Inf`        = list(est = pspa_fit$est,  se = pspa_fit$se),
+  Song        = list(est = song_est,      se = song_se),
+  `Chen-Chen` = list(est = fit_pb[["chen-chen"]]$Estimate,
+                     se  = fit_pb[["chen-chen"]]$Std.Error)
 )
 
 results <- build_results(methods, table_predictors,
@@ -135,4 +127,4 @@ results <- build_results(methods, table_predictors,
 
 
 
-latex_results(results, reference = "PDC", file = "tables/data-analysis.tex")  # \input{} this
+latex_results(results, reference = "PDC", file = "tables/data-analysis.tex")  

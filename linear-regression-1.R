@@ -11,6 +11,7 @@ clusterEvalQ(cl, {
   source("utils/azriel_et_al_2022_code.R")
   source("utils/song_et_al_2024_code/semi_supervised_methods.R")
   source("utils/song_et_al_2024_code/SupervisedEstimation.R")
+  source("utils/ML-Assisted-Inference/Scripts/method_functions.R")   
 })
 
 n_sims <- 1000
@@ -69,14 +70,25 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
                      
                      
-                     pdc_fit <- ipd::pdc_ols(X_int, Y, mu_lab, x_int, mu_unlab, intercept = TRUE)
-                     pdc_est <- pdc_fit$est[2]; pdc_se <- pdc_fit$se[2]
+                     x_names <- paste0("X", 1:p)
+                     dat_pb <- rbind(
+                       data.frame(y = as.vector(Y), setNames(as.data.frame(X), x_names),
+                                  pred = as.vector(mu_lab),   set = "testing"),
+                       data.frame(y = NA_real_,     setNames(as.data.frame(x), x_names),
+                                  pred = as.vector(mu_unlab), set = "unlabeled")
+                     )
+                     pb_formula <- as.formula(paste("y ~", paste(x_names, collapse = " + ")))
                      
-                     pp_fit <- ipd::ppi_plusplus_ols(X_int, Y, mu_lab, x_int, mu_unlab)
-                     pp_est <- pp_fit$est[2]; pp_se <- pp_fit$se[2]
+                     fit_pb <- lapply(c("ppi","ppi_plusplus", "pdc"), function(type) {
+                       pb_estimation(dat_tv = dat_pb, formula = pb_formula,
+                                     family = "gaussian", est_type = type, alpha = alpha)
+                     })
+                     names(fit_pb) <- c("ppi", "ppi_plusplus", "pdc","chen-chen")
                      
-                     ppi_fit <- ipd::ppi_ols(X_int, Y, mu_lab, x_int, mu_unlab)
-                     ppi_est <- ppi_fit$est[2]; ppi_se <- ppi_fit$se[2]
+                     pdc_est <- fit_pb[["pdc"]]$Estimate[2]; pdc_se <- fit_pb[["pdc"]]$Std.Error[2]
+                     ppi_est <- fit_pb[["ppi"]]$Estimate[2]; ppi_se <- fit_pb[["ppi"]]$Std.Error[2]
+                     pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; ppi_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
+                     cc_est <- fit_pb[["chen-chen"]]$Estimate[2]; cc_se <- fit_pb[["chen-chen"]]$Std.Error[2]
                      
                      pspa_fit <- ipd::pspa_ols(X_int, Y, mu_lab, x_int, mu_unlab)
                      pspa_est <- pspa_fit$est[2]; pspa_se <- pspa_fit$se[2]
@@ -84,14 +96,14 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      song_fit <- PSSE(labelled_data, unlabelled_data, type = "linear", sd = TRUE)
                      song_est <- song_fit$Hattheta[2]; song_se <- song_fit$sd.of.hattheta[2]
                      
-                     ests <- c(naive_est, azriel_est, pdc_est, pp_est, ppi_est, pspa_est, song_est)
-                     ses  <- c(naive_se,  azriel_se,  pdc_se,  pp_se,  ppi_se,  pspa_se,  song_se)
+                     ests <- c(naive_est, azriel_est, pdc_est, pp_est, ppi_est, pspa_est, song_est, cc_est)
+                     ses  <- c(naive_se,  azriel_se,  pdc_se,  pp_se,  ppi_se,  pspa_se,  song_se, cc_se)
                      los  <- ests - z_crit * ses
                      his  <- ests + z_crit * ses
                      
                      data.frame(
                        beta_1 = beta_1, sim = i,
-                       Estimator = c("Naive", "Azriel", "PDC", "PPI++", "PPI", "PSPA", "Song"),
+                       Estimator = c("Naive", "Azriel", "PDC", "PPI++", "PPI", "PSPA", "Song","Chen-Chen"),
                        Covered = (true_theta >= los) & (true_theta <= his),
                        Width   = ses / naive_se
                      )

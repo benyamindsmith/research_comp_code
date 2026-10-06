@@ -10,18 +10,21 @@ To ensure a smooth replication experience, please clone the repository and insta
 
 pak::pkg_install(
   c(
-    "foreach",
-    "doParallel",
-    "dplyr",
     "readr",
-    "ipd",
+    "dplyr",
+    "tidyr",
     "MASS",
     "mvnfast",
+    "quantreg",
     "caret",
     "randomForest",
-    "quantreg",
+    "ipd",
+    "lmtest",
+    "sandwich",
     "ggplot2",
-    "patchwork"
+    "patchwork",
+    "foreach",
+    "doParallel"
   )
 )
 ```
