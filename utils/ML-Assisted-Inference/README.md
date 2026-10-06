@@ -1,0 +1,84 @@
+# Another look at statistical inference with machine learning-derived data
+
+This repository contains the code and results for the paper *"SAnother look at statistical inference with machine learning-imputed data"* by Jessica Gronsbell,  Jianhui Gao, Zachary R. McCaw, Yaqi Shi, and David Cheng. You can find the preprint [here](https://arxiv.org/abs/2411.19908).
+
+## Overview
+
+The repository includes:
+- Implementation of the PB inference methods discussed in the paper, including the CC, PPI, and PDC methods.
+- Code for the simulation studies.
+
+
+## Repository Structure
+
+Within the *Scripts* folder:
+
+* `method_functions.R`: Contains functions for the PB inference methods methods 
+
+Within each of the *Simulation Studies* sub-folders:
+
+* `run_sim.R`: Script for running simulations
+* `simple_data_generation.R`: Contains functions for data generation
+* `plotting_functions.R`: Contains functions for plotting
+* `simulation_results.Rmd`: Markdown to replicate the simulation studies
+
+[Note: Additional R packages are required for plotting and parallelization in the markdown file.]
+
+Within the *Data* folder:
+
+* `example_data.csv`: Simple data to run the example at the end of this README file.
+
+## Requirements
+
+Install the following R packages before running an analysis.
+
+```r
+install.packages(c("dplyr", "tidyr", "lmtest", "sandwich"))
+```
+
+
+## Example
+
+Below is a simple demonstration of how to run an analysis.
+
+```r
+# Load analysis functions.
+source('method_functions.R')
+
+# Read in example data for linear regression.
+analysis_data <- read.csv('example_data.csv', row.names = 1)
+
+# Quick peak at the data.
+head(analysis_data)
+
+# Specify the model formula and GLM family.
+formula <- y - pred ~ x1 + x2 + x3 + x4 + x5 
+family <- "gaussian"
+
+# Run the analysis. 
+analysis_results <- rbind(
+  classical_estimation(analysis_data, formula, family, est_type = "classical"),
+  pb_estimation(analysis_data, formula, family, est_type = "ppi"),
+  pb_estimation(analysis_data, formula, family, est_type = "chen-chen"),
+  pb_estimation(analysis_data, formula, family, est_type = "pdc"))
+```
+
+You will obtain the following output. 
+
+```r
+# Review results for coefficient for x1. 
+analysis_results %>% filter(term == "x1")
+# A tibble: 4 × 6
+  Estimate Std.Error Lower.CI Upper.CI Method    term 
+*    <dbl>     <dbl>    <dbl>    <dbl> <chr>     <chr>
+1   -0.170    0.0324   -0.233  -0.106  classical x1   
+2   -0.169    0.0318   -0.231  -0.107  ppi       x1   
+3   -0.169    0.0275   -0.223  -0.115  chen-chen x1   
+4   -0.148    0.0301   -0.207  -0.0888 pdc       x1   
+```
+
+## Contact
+
+For questions, please contact Jesse Gronsbell or open an issue on this repository.
+
+
