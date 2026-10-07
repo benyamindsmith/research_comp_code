@@ -25,6 +25,7 @@ The following objects are masked from ‘package:base’:
 +   source("utils/azriel_et_al_2022_code.R")
 +   source("utils/song_et_al_2024_code/semi_supervised_methods.R")
 +   source("utils/song_et_al_2024_code/SupervisedEstimation.R")
++   source("utils/ML-Assisted-Inference/Scripts/method_functions.R") 
 +   source("utils/pdc_multi.R")
 + })
 [[1]]
@@ -2622,39 +2623,43 @@ function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list,
 +                      pdc2_fit <- pdc_ols_multi(X_int, Y, list(mu2_lab), x_int, list(mu2_unlab))
 +                      pdc2_est <- pdc2_fit$est[2]; pdc2_se <- pdc2_fit$se[2]
 +                      
-+                      pp_fit  <- ipd::ppi_plusplus_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
-+                      pp_est  <- pp_fit$est[2]; pp_se <- pp_fit$se[2]
++                      x_names <- paste0("X", 1:p)
++                      dat_pb <- rbind(
++                        data.frame(y = as.vector(Y), setNames(as.data.frame(X), x_names),
++                                   pred = mu1_lab,   set = "testing"),
++                        data.frame(y = NA_real_,     setNames(as.data.frame(x), x_names),
++                                   pred = mu1_unlab, set = "unlabeled")
++                      )
++                      pb_formula <- as.formula(paste("y ~", paste(x_names, collapse = " + ")))
 +                      
-+                      ppi_fit <- ipd::ppi_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
-+                      ppi_est <- ppi_fit$est[2]; ppi_se <- ppi_fit$se[2]
++                      pb_types <- c("chen-chen", "ppi","ppi_plusplus")
++                      fit_pb <- lapply(pb_types, function(type) {
++                        pb_estimation(dat_tv = dat_pb, formula = pb_formula,
++                                      family = "gaussian", est_type = type, alpha = alpha)
++                      })
++                      names(fit_pb) <- pb_types
 +                      
++                      ppi_est <- fit_pb[["ppi"]]$Estimate[2];       ppi_se <- fit_pb[["ppi"]]$Std.Error[2]
++                      pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; ppi_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
++                      cc_est  <- fit_pb[["chen-chen"]]$Estimate[2]; cc_se  <- fit_pb[["chen-chen"]]$Std.Error[2]                     
 +                      pspa_fit <- ipd::pspa_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
 +                      pspa_est <- pspa_fit$est[2]; pspa_se <- pspa_fit$se[2]
 +                      
 +                      song_fit <- PSSE(labelled_data, unlabelled_data, type = "linear", sd = TRUE)
 +                      song_est <- song_fit$Hattheta[2]; song_se <- song_fit$sd.of.hattheta[2]
 +                      
-+                      ests <- c(naive_est, azriel_est, pdc_est, pdc1_est, pdc2_est, pp_est, ppi_est, pspa_est, song_est)
-+                      ses  <- c(naive_se,  azriel_se,  pdc_se,  pdc1_se,  pdc2_se,  pp_se,  ppi_se,  pspa_se,  song_se)
++                      ests <- c(naive_est, azriel_est, pdc_est, pdc1_est, pdc2_est, pp_est, ppi_est, pspa_est, song_est, cc_est)
++                      ses  <- c(naive_se,  azriel_se,  pdc_se,  pdc1_se,  pdc2_se,  pp_se,  ppi_se,  pspa_se,  song_se, cc_se)
 +                      los  <- ests - z_crit * ses
 +                      his  <- ests + z_crit * ses
 +                      
 +                      data.frame(
 +                        beta_1 = beta_1, sim = i,
-+                        Estimator = c("Naive", "Azriel", "PDC", "PDC1", "PDC2", "PPI++", "PPI", "PSPA", "Song"),
++                        Estimator = c("Naive", "Azriel", "PDC", "PDC1", "PDC2", "PPI++", "PPI", "PSPA", "Song","Chen-Chen"),
 +                        Covered = (true_theta >= los) & (true_theta <= his),
 +                        Width   = ses / naive_se
 +                      )
 +                    }
-> 
-> stopCluster(cl)
-> 
-> final_results_beta3 <- results %>%
-+   group_by(beta_1, Estimator) %>%
-+   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
-> 
-> saveRDS(final_results_beta3, "data/linear-regression-3-results.rds")
-> 
-> proc.time()
-     user    system   elapsed 
-    8.323     1.012 32141.774 
+Error in { : task 1 failed - "object 'pp_se' not found"
+Calls: %dopar% -> <Anonymous>
+Execution halted

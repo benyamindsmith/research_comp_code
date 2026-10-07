@@ -24,47 +24,36 @@ The following objects are masked from ‘package:base’:
 +   source("utils/azriel_et_al_2022_code.R")
 +   source("utils/song_et_al_2024_code/semi_supervised_methods.R")
 +   source("utils/song_et_al_2024_code/SupervisedEstimation.R")
++   source("utils/ML-Assisted-Inference/Scripts/method_functions.R")   
++   
 + })
 [[1]]
 [[1]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[1]]$visible
@@ -73,44 +62,31 @@ function (Data, option, tau = 0.5)
 
 [[2]]
 [[2]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[2]]$visible
@@ -119,44 +95,31 @@ function (Data, option, tau = 0.5)
 
 [[3]]
 [[3]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[3]]$visible
@@ -165,44 +128,31 @@ function (Data, option, tau = 0.5)
 
 [[4]]
 [[4]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[4]]$visible
@@ -211,44 +161,31 @@ function (Data, option, tau = 0.5)
 
 [[5]]
 [[5]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[5]]$visible
@@ -257,44 +194,31 @@ function (Data, option, tau = 0.5)
 
 [[6]]
 [[6]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[6]]$visible
@@ -303,44 +227,31 @@ function (Data, option, tau = 0.5)
 
 [[7]]
 [[7]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[7]]$visible
@@ -349,44 +260,31 @@ function (Data, option, tau = 0.5)
 
 [[8]]
 [[8]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[8]]$visible
@@ -395,44 +293,31 @@ function (Data, option, tau = 0.5)
 
 [[9]]
 [[9]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[9]]$visible
@@ -441,44 +326,31 @@ function (Data, option, tau = 0.5)
 
 [[10]]
 [[10]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[10]]$visible
@@ -487,44 +359,31 @@ function (Data, option, tau = 0.5)
 
 [[11]]
 [[11]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[11]]$visible
@@ -533,44 +392,31 @@ function (Data, option, tau = 0.5)
 
 [[12]]
 [[12]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[12]]$visible
@@ -579,44 +425,31 @@ function (Data, option, tau = 0.5)
 
 [[13]]
 [[13]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[13]]$visible
@@ -625,44 +458,31 @@ function (Data, option, tau = 0.5)
 
 [[14]]
 [[14]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[14]]$visible
@@ -671,44 +491,31 @@ function (Data, option, tau = 0.5)
 
 [[15]]
 [[15]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[15]]$visible
@@ -717,44 +524,31 @@ function (Data, option, tau = 0.5)
 
 [[16]]
 [[16]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[16]]$visible
@@ -763,44 +557,31 @@ function (Data, option, tau = 0.5)
 
 [[17]]
 [[17]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[17]]$visible
@@ -809,44 +590,31 @@ function (Data, option, tau = 0.5)
 
 [[18]]
 [[18]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[18]]$visible
@@ -855,44 +623,31 @@ function (Data, option, tau = 0.5)
 
 [[19]]
 [[19]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[19]]$visible
@@ -901,44 +656,31 @@ function (Data, option, tau = 0.5)
 
 [[20]]
 [[20]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[20]]$visible
@@ -947,44 +689,31 @@ function (Data, option, tau = 0.5)
 
 [[21]]
 [[21]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[21]]$visible
@@ -993,44 +722,31 @@ function (Data, option, tau = 0.5)
 
 [[22]]
 [[22]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[22]]$visible
@@ -1039,44 +755,31 @@ function (Data, option, tau = 0.5)
 
 [[23]]
 [[23]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[23]]$visible
@@ -1085,44 +788,31 @@ function (Data, option, tau = 0.5)
 
 [[24]]
 [[24]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[24]]$visible
@@ -1131,44 +821,31 @@ function (Data, option, tau = 0.5)
 
 [[25]]
 [[25]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[25]]$visible
@@ -1177,44 +854,31 @@ function (Data, option, tau = 0.5)
 
 [[26]]
 [[26]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[26]]$visible
@@ -1223,44 +887,31 @@ function (Data, option, tau = 0.5)
 
 [[27]]
 [[27]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[27]]$visible
@@ -1269,44 +920,31 @@ function (Data, option, tau = 0.5)
 
 [[28]]
 [[28]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[28]]$visible
@@ -1315,44 +953,31 @@ function (Data, option, tau = 0.5)
 
 [[29]]
 [[29]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[29]]$visible
@@ -1361,44 +986,31 @@ function (Data, option, tau = 0.5)
 
 [[30]]
 [[30]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[30]]$visible
@@ -1407,44 +1019,31 @@ function (Data, option, tau = 0.5)
 
 [[31]]
 [[31]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[31]]$visible
@@ -1453,44 +1052,31 @@ function (Data, option, tau = 0.5)
 
 [[32]]
 [[32]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[32]]$visible
@@ -1499,44 +1085,31 @@ function (Data, option, tau = 0.5)
 
 [[33]]
 [[33]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[33]]$visible
@@ -1545,44 +1118,31 @@ function (Data, option, tau = 0.5)
 
 [[34]]
 [[34]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[34]]$visible
@@ -1591,44 +1151,31 @@ function (Data, option, tau = 0.5)
 
 [[35]]
 [[35]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[35]]$visible
@@ -1637,44 +1184,31 @@ function (Data, option, tau = 0.5)
 
 [[36]]
 [[36]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[36]]$visible
@@ -1683,44 +1217,31 @@ function (Data, option, tau = 0.5)
 
 [[37]]
 [[37]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[37]]$visible
@@ -1729,44 +1250,31 @@ function (Data, option, tau = 0.5)
 
 [[38]]
 [[38]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[38]]$visible
@@ -1775,44 +1283,31 @@ function (Data, option, tau = 0.5)
 
 [[39]]
 [[39]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[39]]$visible
@@ -1821,44 +1316,31 @@ function (Data, option, tau = 0.5)
 
 [[40]]
 [[40]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[40]]$visible
@@ -1867,44 +1349,31 @@ function (Data, option, tau = 0.5)
 
 [[41]]
 [[41]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[41]]$visible
@@ -1913,44 +1382,31 @@ function (Data, option, tau = 0.5)
 
 [[42]]
 [[42]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[42]]$visible
@@ -1959,44 +1415,31 @@ function (Data, option, tau = 0.5)
 
 [[43]]
 [[43]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[43]]$visible
@@ -2005,44 +1448,31 @@ function (Data, option, tau = 0.5)
 
 [[44]]
 [[44]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[44]]$visible
@@ -2051,44 +1481,31 @@ function (Data, option, tau = 0.5)
 
 [[45]]
 [[45]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[45]]$visible
@@ -2097,44 +1514,31 @@ function (Data, option, tau = 0.5)
 
 [[46]]
 [[46]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[46]]$visible
@@ -2143,44 +1547,31 @@ function (Data, option, tau = 0.5)
 
 [[47]]
 [[47]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[47]]$visible
@@ -2189,44 +1580,31 @@ function (Data, option, tau = 0.5)
 
 [[48]]
 [[48]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[48]]$visible
@@ -2235,44 +1613,31 @@ function (Data, option, tau = 0.5)
 
 [[49]]
 [[49]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[49]]$visible
@@ -2281,44 +1646,31 @@ function (Data, option, tau = 0.5)
 
 [[50]]
 [[50]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[50]]$visible
@@ -2327,44 +1679,31 @@ function (Data, option, tau = 0.5)
 
 [[51]]
 [[51]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[51]]$visible
@@ -2373,44 +1712,31 @@ function (Data, option, tau = 0.5)
 
 [[52]]
 [[52]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[52]]$visible
@@ -2419,44 +1745,31 @@ function (Data, option, tau = 0.5)
 
 [[53]]
 [[53]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[53]]$visible
@@ -2465,44 +1778,31 @@ function (Data, option, tau = 0.5)
 
 [[54]]
 [[54]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[54]]$visible
@@ -2511,44 +1811,31 @@ function (Data, option, tau = 0.5)
 
 [[55]]
 [[55]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[55]]$visible
@@ -2557,44 +1844,31 @@ function (Data, option, tau = 0.5)
 
 [[56]]
 [[56]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[56]]$visible
@@ -2603,44 +1877,31 @@ function (Data, option, tau = 0.5)
 
 [[57]]
 [[57]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[57]]$visible
@@ -2649,44 +1910,31 @@ function (Data, option, tau = 0.5)
 
 [[58]]
 [[58]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[58]]$visible
@@ -2695,44 +1943,31 @@ function (Data, option, tau = 0.5)
 
 [[59]]
 [[59]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[59]]$visible
@@ -2741,44 +1976,31 @@ function (Data, option, tau = 0.5)
 
 [[60]]
 [[60]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[60]]$visible
@@ -2787,44 +2009,31 @@ function (Data, option, tau = 0.5)
 
 [[61]]
 [[61]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[61]]$visible
@@ -2833,44 +2042,31 @@ function (Data, option, tau = 0.5)
 
 [[62]]
 [[62]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[62]]$visible
@@ -2879,44 +2075,31 @@ function (Data, option, tau = 0.5)
 
 [[63]]
 [[63]]$value
-function (Data, option, tau = 0.5) 
+function (dat_tv, formula, family, robust = TRUE, est_type = "classical", 
+    alpha = 0.05) 
 {
-    n = nrow(Data)
-    if (n > 500) {
-        print(paste("NOTE: The coefficients estimate is computed only using labelled data of size ", 
-            n, ".", sep = ""))
+    if (est_type == "classical") {
+        dat_tv_fit <- filter(dat_tv, set == "testing")
     }
-    if (option == "i") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    else {
+        dat_tv_fit <- dat_tv
     }
-    else if (option == "ii") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
+    if (est_type == "naive") {
+        formula <- as.formula(call("~", as.name("pred"), formula[[3]]))
     }
-    else if (option == "iii") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
+    else {
+        formula <- as.formula(call("~", as.name("y"), formula[[3]]))
     }
-    else if (option == "W1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
+    fit <- glm(formula, data = dat_tv_fit, family = family)
+    if (robust) {
+        fit <- coeftest(fit, vcov. = vcovHC(fit, type = "HC"))
     }
-    else if (option == "W2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "W3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    else if (option == "S1") {
-        Target <- lm(as.vector(Data[, 1]) ~ Data[, -1], data = data.frame(Data))$coefficients
-    }
-    else if (option == "S2") {
-        Target <- glm(as.vector(Data[, 1]) ~ Data[, -1], family = "quasibinomial")$coefficients
-    }
-    else if (option == "S3") {
-        Target <- rq(as.vector(Data[, 1]) ~ Data[, -1], tau = tau, 
-            data = as.data.frame(Data))$coefficients
-    }
-    return(list(Est.coef = as.vector(Target)))
+    critical_val <- qnorm(1 - alpha/2)
+    df <- broom::tidy(fit) %>% mutate(Method = est_type, conf.low = estimate - 
+        critical_val * std.error, conf.high = estimate + critical_val * 
+        std.error) %>% dplyr::select(Estimate = estimate, Std.Error = std.error, 
+        Lower.CI = conf.low, Upper.CI = conf.high, Method, term)
+    return(df)
 }
 
 [[63]]$visible
@@ -2981,14 +2164,25 @@ function (Data, option, tau = 0.5)
 +                      azriel_est <- azriel_fit$Hattheta[2]; azriel_se <- azriel_fit$se[2]
 + 
 +                      
-+                      pdc_fit <- ipd::pdc_ols(X_int, Y, mu_lab, x_int, mu_unlab, intercept = TRUE)
-+                      pdc_est <- pdc_fit$est[2]; pdc_se <- pdc_fit$se[2]
++                      x_names <- paste0("X", 1:p)
++                      dat_pb <- rbind(
++                        data.frame(y = as.vector(Y), setNames(as.data.frame(X), x_names),
++                                   pred = as.vector(mu_lab),   set = "testing"),
++                        data.frame(y = NA_real_,     setNames(as.data.frame(x), x_names),
++                                   pred = as.vector(mu_unlab), set = "unlabeled")
++                      )
++                      pb_formula <- as.formula(paste("y ~", paste(x_names, collapse = " + ")))
 +                      
-+                      pp_fit <- ipd::ppi_plusplus_ols(X_int, Y, mu_lab, x_int, mu_unlab)
-+                      pp_est <- pp_fit$est[2]; pp_se <- pp_fit$se[2]
++                      fit_pb <- lapply(c("ppi","ppi_plusplus", "pdc"), function(type) {
++                        pb_estimation(dat_tv = dat_pb, formula = pb_formula,
++                                      family = "gaussian", est_type = type, alpha = alpha)
++                      })
++                      names(fit_pb) <- c("ppi", "ppi_plusplus", "pdc","chen-chen")
 +                      
-+                      ppi_fit <- ipd::ppi_ols(X_int, Y, mu_lab, x_int, mu_unlab)
-+                      ppi_est <- ppi_fit$est[2]; ppi_se <- ppi_fit$se[2]
++                      pdc_est <- fit_pb[["pdc"]]$Estimate[2]; pdc_se <- fit_pb[["pdc"]]$Std.Error[2]
++                      ppi_est <- fit_pb[["ppi"]]$Estimate[2]; ppi_se <- fit_pb[["ppi"]]$Std.Error[2]
++                      pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; ppi_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
++                      cc_est <- fit_pb[["chen-chen"]]$Estimate[2]; cc_se <- fit_pb[["chen-chen"]]$Std.Error[2]
 +                      
 +                      pspa_fit <- ipd::pspa_ols(X_int, Y, mu_lab, x_int, mu_unlab)
 +                      pspa_est <- pspa_fit$est[2]; pspa_se <- pspa_fit$se[2]
@@ -2996,27 +2190,19 @@ function (Data, option, tau = 0.5)
 +                      song_fit <- PSSE(labelled_data, unlabelled_data, type = "linear", sd = TRUE)
 +                      song_est <- song_fit$Hattheta[2]; song_se <- song_fit$sd.of.hattheta[2]
 +                      
-+                      ests <- c(naive_est, azriel_est, pdc_est, pp_est, ppi_est, pspa_est, song_est)
-+                      ses  <- c(naive_se,  azriel_se,  pdc_se,  pp_se,  ppi_se,  pspa_se,  song_se)
++                      ests <- c(naive_est, azriel_est, pdc_est, pp_est, ppi_est, pspa_est, song_est, cc_est)
++                      ses  <- c(naive_se,  azriel_se,  pdc_se,  pp_se,  ppi_se,  pspa_se,  song_se, cc_se)
 +                      los  <- ests - z_crit * ses
 +                      his  <- ests + z_crit * ses
 +                      
 +                      data.frame(
 +                        beta_1 = beta_1, sim = i,
-+                        Estimator = c("Naive", "Azriel", "PDC", "PPI++", "PPI", "PSPA", "Song"),
++                        Estimator = c("Naive", "Azriel", "PDC", "PPI++", "PPI", "PSPA", "Song","Chen-Chen"),
 +                        Covered = (true_theta >= los) & (true_theta <= his),
 +                        Width   = ses / naive_se
 +                      )
 +                    }
-> 
-> stopCluster(cl)
-> 
-> final_results_beta2 <- results %>%
-+   group_by(beta_1, Estimator) %>%
-+   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
-> 
-> saveRDS(final_results_beta2, "data/linear-regression-2-results.rds")
-> 
-> proc.time()
-    user   system  elapsed 
-   7.565    0.796 4642.576 
+Error in { : 
+  task 1 failed - "'names' attribute [4] must be the same length as the vector [3]"
+Calls: %dopar% -> <Anonymous>
+Execution halted
