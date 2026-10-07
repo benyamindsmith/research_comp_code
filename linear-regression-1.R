@@ -79,7 +79,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      )
                      pb_formula <- as.formula(paste("y ~", paste(x_names, collapse = " + ")))
                      
-                     fit_pb <- lapply(c("ppi","ppi_plusplus", "pdc"), function(type) {
+                     fit_pb <- lapply(c("ppi","ppi_plusplus", "pdc","chen-chen"), function(type) {
                        pb_estimation(dat_tv = dat_pb, formula = pb_formula,
                                      family = "gaussian", est_type = type, alpha = alpha)
                      })
