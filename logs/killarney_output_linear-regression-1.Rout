@@ -2172,7 +2172,7 @@ function (dat_tv, formula, family, robust = TRUE, est_type = "classical",
 +                      )
 +                      pb_formula <- as.formula(paste("y ~", paste(x_names, collapse = " + ")))
 +                      
-+                      fit_pb <- lapply(c("ppi","ppi_plusplus", "pdc"), function(type) {
++                      fit_pb <- lapply(c("ppi","ppi_plusplus", "pdc","chen-chen"), function(type) {
 +                        pb_estimation(dat_tv = dat_pb, formula = pb_formula,
 +                                      family = "gaussian", est_type = type, alpha = alpha)
 +                      })
@@ -2201,7 +2201,15 @@ function (dat_tv, formula, family, robust = TRUE, est_type = "classical",
 +                        Width   = ses / naive_se
 +                      )
 +                    }
-Error in { : 
-  task 1 failed - "'names' attribute [4] must be the same length as the vector [3]"
-Calls: %dopar% -> <Anonymous>
-Execution halted
+> 
+> stopCluster(cl)
+> 
+> final_results_beta1 <- results %>%
++   group_by(beta_1, Estimator) %>%
++   summarise(Coverage = mean(Covered), Width_Ratio = mean(Width), .groups = "drop")
+> 
+> saveRDS(final_results_beta1, "data/linear-regression-1-results.rds")
+> 
+> proc.time()
+    user   system  elapsed 
+   7.269    0.713 2182.535 
