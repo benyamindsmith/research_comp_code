@@ -106,7 +106,7 @@ results <- foreach(row = 1:nrow(grid), .combine = rbind,
                      names(fit_pb) <- pb_types
                      
                      ppi_est <- fit_pb[["ppi"]]$Estimate[2];       ppi_se <- fit_pb[["ppi"]]$Std.Error[2]
-                     pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; ppi_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
+                     pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; pp_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
                      cc_est  <- fit_pb[["chen-chen"]]$Estimate[2]; cc_se  <- fit_pb[["chen-chen"]]$Std.Error[2]                     
                      pspa_fit <- ipd::pspa_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
                      pspa_est <- pspa_fit$est[2]; pspa_se <- pspa_fit$se[2]
