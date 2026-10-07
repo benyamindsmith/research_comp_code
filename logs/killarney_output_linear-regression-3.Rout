@@ -2640,7 +2640,7 @@ function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list,
 +                      names(fit_pb) <- pb_types
 +                      
 +                      ppi_est <- fit_pb[["ppi"]]$Estimate[2];       ppi_se <- fit_pb[["ppi"]]$Std.Error[2]
-+                      pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; ppi_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
++                      pp_est <- fit_pb[["ppi_plusplus"]]$Estimate[2]; pp_se <- fit_pb[["ppi_plusplus"]]$Std.Error[2]
 +                      cc_est  <- fit_pb[["chen-chen"]]$Estimate[2]; cc_se  <- fit_pb[["chen-chen"]]$Std.Error[2]                     
 +                      pspa_fit <- ipd::pspa_ols(X_int, Y, matrix(mu1_lab, ncol = 1), x_int, matrix(mu1_unlab, ncol = 1))
 +                      pspa_est <- pspa_fit$est[2]; pspa_se <- pspa_fit$se[2]
@@ -2660,6 +2660,3 @@ function (X_lab, Y_lab, mu_lab_list, X_unlab, mu_unlab_list,
 +                        Width   = ses / naive_se
 +                      )
 +                    }
-Error in { : task 1 failed - "object 'pp_se' not found"
-Calls: %dopar% -> <Anonymous>
-Execution halted
