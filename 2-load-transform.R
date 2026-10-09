@@ -10,7 +10,8 @@ estimator_lookup <- c(
   "Azriel" = "SEMI",
   "Zhang"  = "SEMI",
   "Song"   = "SONG",
-  "PSPA"   = "POP-Inf"
+  "PSPA"   = "POP-Inf",
+  "Chen-Chen" = "CC"
 )
 
 relabel_estimators <- function(df, extra = character()) {

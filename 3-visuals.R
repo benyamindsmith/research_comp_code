@@ -12,7 +12,7 @@ estimator_colors <- c(
   "PPI++"     = "#FF7F00",  # orange
   "SONG"      = "#A65628",  # brown
   "POP-Inf"   = "#666666",  # grey
-  "Chen-Chen" = "#17BECF"   # teal
+  "CC" = "#17BECF"   # teal
 )
 
 estimator_shapes <- c(
@@ -25,7 +25,7 @@ estimator_shapes <- c(
   "PPI++"     = 4,
   "SONG"      = 2,
   "POP-Inf"   = 8,
-  "Chen-Chen" = 3
+  "CC" = 3
 )
 
 stopifnot(

@@ -118,7 +118,7 @@ methods <- list(
                      se  = fit_pb[["ppi"]]$Std.Error),
   `POP-Inf`        = list(est = pspa_fit$est,  se = pspa_fit$se),
   Song        = list(est = song_est,      se = song_se),
-  `Chen-Chen` = list(est = fit_pb[["chen-chen"]]$Estimate,
+  `CC` = list(est = fit_pb[["chen-chen"]]$Estimate,
                      se  = fit_pb[["chen-chen"]]$Std.Error)
 )
 
