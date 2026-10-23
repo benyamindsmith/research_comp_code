@@ -2,7 +2,7 @@ library(dplyr)
 
 # Master estimator order -- used for every figure so legends line up
 estimator_levels <- c("PDC", "PDC1", "PDC2", "SEMI", "PPI", "SUP",
-                      "PPI++", "SONG", "POP-Inf", "Chen-Chen")
+                      "PPI++", "SONG", "POP-Inf", "CC")
 
 # Raw simulation labels -> paper labels
 estimator_lookup <- c(
@@ -37,7 +37,7 @@ linear_regression_2 <- readRDS("data/linear-regression-2-results.rds")
 linear_regression_3 <- readRDS("data/linear-regression-3-results.rds")
 
 # Mean estimation: PPI++ is reported as PDC
-mean_keep <- c("Naive", "PPI", "PPI++", "Song", "Zhang", "PSPA")
+mean_keep <- c("Naive", "PPI", "PPI++", "Zhang", "PSPA")
 
 mean_estimation_1 <- mean_estimation_1 |>
   dplyr::filter(Estimator %in% mean_keep) |>
@@ -52,6 +52,13 @@ mean_estimation_3 <- mean_estimation_3 |>
   relabel_estimators(extra = c("PPI++" = "PDC"))
 
 # Linear regression
-linear_regression_1 <- relabel_estimators(linear_regression_1)
-linear_regression_2 <- relabel_estimators(linear_regression_2)
-linear_regression_3 <- relabel_estimators(linear_regression_3)
+linear_regression_keep <- c("Naive", "PPI", "PPI++", "Azriel", "PDC", "PDC1", "PDC2", "PSPA", "Chen-Chen")
+linear_regression_1 <- linear_regression_1 |>
+  dplyr::filter(Estimator %in% linear_regression_keep) |>
+  relabel_estimators()
+linear_regression_2 <- linear_regression_2|>
+  dplyr::filter(Estimator %in% linear_regression_keep) |>
+  relabel_estimators()
+linear_regression_3 <- r linear_regression_3|>
+  dplyr::filter(Estimator %in% linear_regression_keep) |>
+  relabel_estimators()

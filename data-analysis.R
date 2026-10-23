@@ -89,12 +89,12 @@ pspa_fit  <- ipd::pspa_ols(X_l = X_l, Y_l = Y_l, f_l = pred_l,
                            X_u = X_u, f_u = pred_u)
 
 # Song et al. (2024) PSSE
-song_fit <- PSSE(labelled_data   = labelled_mat,
-                 unlabelled_data = unlabelled_mat,
-                 type = "linear", sd = TRUE)
-
-song_est <- song_fit$Hattheta
-song_se  <- song_fit$sd.of.hattheta
+# song_fit <- PSSE(labelled_data   = labelled_mat,
+#                  unlabelled_data = unlabelled_mat,
+#                  type = "linear", sd = TRUE)
+# 
+# song_est <- song_fit$Hattheta
+# song_se  <- song_fit$sd.of.hattheta
 
 pb_formula <- StTotal ~ Perc.Vacant + Perc.Minority
 pb_types   <- c("chen-chen", "ppi", "pdc","ppi_plusplus")
@@ -117,7 +117,7 @@ methods <- list(
   PPI         = list(est = fit_pb[["ppi"]]$Estimate,
                      se  = fit_pb[["ppi"]]$Std.Error),
   `POP-Inf`        = list(est = pspa_fit$est,  se = pspa_fit$se),
-  Song        = list(est = song_est,      se = song_se),
+  # Song        = list(est = song_est,      se = song_se),
   `CC` = list(est = fit_pb[["chen-chen"]]$Estimate,
                      se  = fit_pb[["chen-chen"]]$Std.Error)
 )
