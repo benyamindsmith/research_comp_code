@@ -59,6 +59,6 @@ linear_regression_1 <- linear_regression_1 |>
 linear_regression_2 <- linear_regression_2|>
   dplyr::filter(Estimator %in% linear_regression_keep) |>
   relabel_estimators()
-linear_regression_3 <- r linear_regression_3|>
+linear_regression_3 <- linear_regression_3|>
   dplyr::filter(Estimator %in% linear_regression_keep) |>
   relabel_estimators()
