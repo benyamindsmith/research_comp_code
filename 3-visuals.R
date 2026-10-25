@@ -50,7 +50,7 @@ theme_paper <- theme_bw(base_size = 14) +
     plot.title = element_blank()
   )
 
-make_panel <- function(data, x, y, xlab, ylab = NULL, sub_caption = NULL) {
+make_panel <- function(data, x, y, xlab, ylab = NULL, sub_caption = NULL, ylim = NULL) {
   if (is.null(ylab)) ylab <- gsub("_", " ", y)
   
   ggplot(data = data, mapping = aes(x = .data[[x]], y = .data[[y]],
@@ -58,16 +58,15 @@ make_panel <- function(data, x, y, xlab, ylab = NULL, sub_caption = NULL) {
     geom_hline(yintercept = 0.9, linetype = "dashed", color = "black", linewidth = 0.6) +
     geom_line(linewidth = 0.8) +
     geom_point(size = 3) +
-    # Named values: each estimator keeps its colour/shape; unused ones are dropped
     scale_color_manual(values = estimator_colors) +
     scale_shape_manual(values = estimator_shapes) +
+    coord_cartesian(ylim = ylim) +
     labs(x = xlab, y = ylab, color = "Method", shape = "Method", title = sub_caption) +
     theme_paper +
     theme(
       plot.title = element_text(hjust = 0.5, size = 14, margin = ggplot2::margin(b = 10))
     )
 }
-
 # Visuals
 
 ############
@@ -76,7 +75,8 @@ make_panel <- function(data, x, y, xlab, ylab = NULL, sub_caption = NULL) {
 p1 <- make_panel(
   data = mean_estimation_1, x = "epsilon", y = "Coverage",
   xlab = expression(epsilon), ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for EY"))
+  sub_caption = expression(paste(bold("(a) "), "Coverage probability for EY")),
+  ylim= c(0.6, 1)
 )
 
 p2 <- make_panel(
@@ -94,7 +94,9 @@ fig1
 p3 <- make_panel(
   data = mean_estimation_2, x = "n", y = "Coverage",
   xlab = expression(n), ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for EY"))
+  sub_caption = expression(paste(bold("(a) "), "Coverage probability for EY")),
+  ylim= c(0.6, 1)
+  
 )
 
 p4 <- make_panel(
@@ -112,7 +114,9 @@ fig2
 p5 <- make_panel(
   data = mean_estimation_3, x = "N", y = "Coverage",
   xlab = expression(N), ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for EY"))
+  sub_caption = expression(paste(bold("(a) "), "Coverage probability for EY")),
+  ylim= c(0.6, 1)
+  
 )
 
 p6 <- make_panel(
@@ -130,7 +134,8 @@ fig3
 p7 <- make_panel(
   data = linear_regression_1, x = "beta_1", y = "Coverage",
   xlab = expression(beta[1]), ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)]))
+  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)])),
+  ylim= c(0.6, 1)
 )
 
 p8 <- make_panel(
@@ -148,7 +153,8 @@ fig4
 p9 <- make_panel(
   data = linear_regression_2, x = "beta_1", y = "Coverage",
   xlab = expression(beta[1]), ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)]))
+  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)])),
+  ylim= c(0.6, 1)
 )
 
 p10 <- make_panel(
@@ -166,7 +172,8 @@ fig5
 p11 <- make_panel(
   data = linear_regression_3, x = "beta_1", y = "Coverage",
   xlab = expression(beta[1]), ylab = "Coverage",
-  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)]))
+  sub_caption = expression(paste(bold("(a) "), "Coverage probability for ", theta[(1)])),
+  ylim= c(0.6, 1)
 )
 
 p12 <- make_panel(
