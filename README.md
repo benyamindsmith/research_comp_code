@@ -45,7 +45,7 @@ To run simulation studies on a SLURM cluster, run the following command in the t
 sbatch run_sims.sh
 ```
 
-To post-process the data for Figures 1-6, run in `R`:
+To post-process the data for Figures 2-7, run in `R`:
 
 ```r
 source(2-load-transform.R)
@@ -54,7 +54,7 @@ source(3-visuals.R)
 
 # Data Analysis
 
-To run the data analysis and replicate the results from Table 1, run in `R`:
+To run the data analysis and replicate the results from Table 2, run in `R`:
 
 ```r
 source("data-analysis.R")
