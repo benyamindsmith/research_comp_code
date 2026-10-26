@@ -1,6 +1,6 @@
-# Simulation Code for "Z-Estimation for Post-Prediction Inference: Revisiting Prediction De-Correlated Inference"
+# Simulation Code for "Z-Estimation for Post-Prediction Inference"
 
-This repository contains the replication codes for the report "Z-Estimation for Post-Prediction Inference: Revisiting Prediction De-Correlated Inference" by Benjamin Smith. 
+This repository contains the replication codes for the report "Z-Estimation for Post-Prediction Inference" by Benjamin Smith. 
 
 To ensure a smooth replication experience, please clone the repository and install the required packages listed below:
 
