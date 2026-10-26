@@ -1,6 +1,6 @@
-# Simulation Code for "Post-Prediction Inference under Model Misspecification"
+# Simulation Code for "Z-Estimation for Post-Prediction Inference: Revisiting Prediction De-Correlated Inference"
 
-This repository contains the replication codes for the report "Post-Prediction Inference under Model Misspecification" by Benjamin Smith. 
+This repository contains the replication codes for the report "Z-Estimation for Post-Prediction Inference: Revisiting Prediction De-Correlated Inference" by Benjamin Smith. 
 
 To ensure a smooth replication experience, please clone the repository and install the required packages listed below:
 
